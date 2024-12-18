@@ -1,6 +1,5 @@
 import os
 import psycopg2 as psy
-import pandas as pd
 import matplotlib.pyplot as plt
 from io import BytesIO
 from psycopg2.extensions import connection
@@ -9,51 +8,35 @@ from dotenv import load_dotenv
 from discord import Message, Guild, User, Attachment, File, Reaction
 from datetime import datetime, timezone
 
-# Create message log
-async def create_message_log(message: Message):
+async def create_message_log(message: Message) -> None:
+
     conn = get_db_connection()
-    cur = conn.cursor() 
 
-    # Check if user object exists
     log_user(conn, message.author)
-
-    # check if guild exists
     log_guild(conn, message.guild)
-
-    # Check if channel exists
     log_channel(conn, message)
-
-    # Log message
     log_message(conn, message)
 
-    # Log attachments
     for attachment in message.attachments:
         log_attachment(conn, attachment, message_id=message.id)
 
-    # Log mentions. Make sure user exists then log mention
     for user in message.mentions: 
         log_user(conn, user)
         log_user_mention(conn, user, message_id=message.id, message_sender_id=message.author.id)
 
-    conn.commit() # This only commits the message, attachment, user mentions at the moment
-
-    # Close cursor and connection
-    cur.close()
     conn.close()
-
-
-    return None
 
 # Check, Update, Insert
 def log_user(conn: connection, user: User) -> None:
+
     cur = conn.cursor()
     cur.execute(get_user_query(), (user.id,))
     row = cur.fetchone()
+
     if not row:
         try:
             cur.execute(insert_user_query(), (user.id, user.name, get_date()))
             conn.commit()
-            print(f'Mentioned user {user.name} added succesfully')
         except Exception as e:
             print(f'Error creating user {user.name} with exception {e}')
     elif row[1] != user.name:
@@ -62,17 +45,18 @@ def log_user(conn: connection, user: User) -> None:
             conn.commit()
         except Exception as e:
             print(f'Error updating user {user.name} with exception {e}')
-    cur.close()
+
+    cur.close()   
 def log_guild(conn: connection, guild: Guild) -> None:
+
     cur = conn.cursor()
     cur.execute(get_guild_query(), (guild.id,))
     row = cur.fetchone()
-    if not row: # True if guild does not exist
-        print(f'Guild not found: {guild.name}; {guild.id}')
+
+    if not row:
         try:
             cur.execute(insert_quild_query(), (guild.id, guild.name, guild.description, get_date()))
             conn.commit()
-            print(f'Guild {guild.name} added succesfully')
         except Exception as e:
             print(f'Error inserting guild {guild.name} with exception {e}')
     elif row[0] == guild.id and (row[1] != guild.name or row[2] != guild.description):
@@ -81,46 +65,48 @@ def log_guild(conn: connection, guild: Guild) -> None:
             conn.commit()
         except Exception as e:
             print(f'Error updating guild {guild.name} with exception {e}')
+
     cur.close()
 def log_channel(conn: connection, message: Message) -> None:
+
     channel = message.channel
     cur = conn.cursor()
     cur.execute(get_channel_query(), (channel.id,))
     row = cur.fetchone()
     
-    # Update channel_name if it doesn't have one
+    # Update channel.name if it doesn't have one
     channel_name = create_channel_name(message)
 
     if not row:
         try:
             cur.execute(insert_channel_query(), (channel.id, channel.type.value, channel_name, channel.guild.id, channel.category.name, get_date()))
             conn.commit()
-            print(f'Channel {channel_name} added succesfully')
         except Exception as e:
             print(f'Error inserting channel {channel_name} with exception {e}')
     elif row[1] != channel.name or row[2] != channel.type.value:
         try:
             cur.execute(update_channel_query(), (channel.name, channel.type.value, channel.id))
             conn.commit()
-            print(f'Channel {channel.name} updated successfully')
         except Exception as e:
             print(f'Error updating channel {channel.name} with exception {e}')
+
     cur.close()
 def log_message(conn: connection, message: Message) -> None:
-    # Update message content to remove the two prefixes im using. 
+
     cur = conn.cursor()
     cur.execute(get_message_query(), (message.id,))
     row = cur.fetchone()
+
     if not row:
         try:
             cur.execute(insert_message_query(), (message.id, message.author.id, message.guild.id, message.content, message.channel.id, get_date()))
-            # print(f'Logged message: {message.content[:20]}') # Should only print first 20 characters to prevent spam i thinks
+            conn.commit()
         except Exception as e:
             print(f'Error inserting message {message.content[:20]}... with exception {e}')
-    else:
-        print(f'Message {message.content[:20]}, {message.id} already exists')    
+
     cur.close()
 def log_attachment(conn: connection, attachment: Attachment, message_id):
+
     cur = conn.cursor()
     cur.execute(get_attachment_query(), (attachment.id,))
     row = cur.fetchone()
@@ -128,28 +114,29 @@ def log_attachment(conn: connection, attachment: Attachment, message_id):
     if not row:
         try:
             cur.execute(insert_attachment_query(), (attachment.id, attachment.filename, attachment.content_type, attachment.url, message_id, get_date()))
+            conn.commit()
             print(f'Attachment {attachment.filename[:20]} added successfully')
         except Exception as e:
             print(f'Error inserting attachment {attachment.filename[:20]} with exception {e}')
     elif row[1] != attachment.filename or row[2] != attachment.content_type or row[3] != attachment.url or row[4] != message_id:
-        return NotImplementedError('Attachment already exists') # not worried about this happening but just in case
+        return NotImplementedError('Attachment already exists')
+    
     cur.close()
 def log_user_mention(conn: connection, user: User, message_id, message_sender_id) -> None:
 
     # TODO Don't log bot mentions
-    # if message_sender_id == bot.id or user.id == bot.id:
-    #     return 
+    # if message_sender_id == bot.id: return
 
-    # I only want one record per mentioned user per message id
     cur = conn.cursor()
     cur.execute(get_user_mentions_query(), (message_id, message_sender_id))
     row = cur.fetchone()
     if not row: 
         try:
             cur.execute(insert_user_mentions_query(), (message_id, message_sender_id, user.id, get_date()))
-            print(f'Added mention {user.name} successfully')
+            conn.commit()
         except Exception as e:
             print(f'Error inserting mention {user.name} with exception {e}')
+
     cur.close()
 def get_message_counts(guild: Guild) -> File:
     conn = get_db_connection()
@@ -175,6 +162,7 @@ def get_message_counts(guild: Guild) -> File:
     buf.close()
     cur.close()
     conn.close()
+
     return file
 
 async def log_message_edit(before: Message, after: Message) -> None:
@@ -192,6 +180,7 @@ async def log_message_edit(before: Message, after: Message) -> None:
             if attachment not in after.attachments:
                 # Delete record
                 cur.execute(delete_attachment_query(), (get_date(), get_date(), attachment.url, before.id)) 
+                conn.commit()
         # Log new attachments
         for attachment in after.attachments:
             if attachment not in before.attachments:
@@ -201,41 +190,52 @@ async def log_message_edit(before: Message, after: Message) -> None:
             if mention not in after.mentions:
                 # Delete record
                 cur.execute(delete_user_mention_query(), (get_date(), get_date(), before.id, mention.id))
+                conn.commit()
         for mention in after.mentions:
             if mention not in before.mentions:
                 # Insert record
                 log_user_mention(conn, mention, before.id, before.author.id)
         cur.execute(update_message_query(), (after.content, 1, 0, get_date(), None, after.id))
+        conn.commit()
     except Exception as e:
         print(f'Error updating message with exception {e}')
     try:
         cur.execute('INSERT INTO "MessageEditHistory" ("MessageId", "BeforeContent", "AfterContent", "CreateDateUTC") VALUES (%s, %s, %s, %s)', (before.id, before.content, after.content, get_date()))
+        conn.commit()
     except Exception as e:
         print(f'Error inserting message edit with exception {e}')
+        
     conn.commit()
     cur.close()
     conn.close()
 async def log_message_deletion(message: Message) -> None:
+
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT "Id" FROM "Message" WHERE "Id" = %s', (message.id,))
     row = cur.fetchone()
+
     if not row:
         create_message_log(message)
     try: 
         cur.execute("""UPDATE "Message" SET "DeleteDateUTC" = %s, "Deleted" = %s, "UpdateDateUTC" = %s WHERE "Id" = %s""", (get_date(), 1, get_date(), message.id))
+        conn.commit()
     except Exception as e:
         print(f'Error updating message {message.id} with exception {e}')
-    conn.commit()
+    
     cur.close()
     conn.close()
 def log_message_reaction(reaction: Reaction, user: User) -> None:
+
     conn = get_db_connection()
     cur = conn.cursor()
     log_user(get_db_connection(), user)
-    self_react = int(reaction.message.author.id == user.id) # if reacting user == author
+
+    self_react = int(reaction.message.author.id == user.id) 
+
     try:
-        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji # emoji is either an object with property "name" or a string. Custom vs default emojis.
+        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji
+        # TODO put insert reaction query into a new function.
         cur.execute("""INSERT INTO "Reactions" ("MessageId", "UserId", "Emoji", "SelfReact", "CreateDateUTC") VALUES (%s, %s, %s, %s, %s)""", (reaction.message.id, user.id, emoji_name, self_react, get_date()))
         conn.commit()
     except Exception as e:
@@ -243,31 +243,38 @@ def log_message_reaction(reaction: Reaction, user: User) -> None:
     cur.close()
     conn.close()
 def log_reaction_deletion(reaction: Reaction, user: User) -> None:
+
     conn = get_db_connection()
     cur = conn.cursor()
+
     try:
-        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji # emoji is either an object with property "name" or a string. Custom vs default emojis.
+        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji
+        #TODO: modularize query
         cur.execute('UPDATE "Reactions" SET "DeleteDateUTC" = %s, "Deleted" = 1 WHERE "MessageId" = %s AND "UserId" = %s AND "Emoji" = %s AND "Deleted" = 0', (get_date(), reaction.message.id, user.id, emoji_name))
         conn.commit()
     except Exception as e:
         print(f'Error updating reaction {emoji_name} with exception {e}')
+
     cur.close()
     conn.close()
 def log_reaction_clear(reactions: list[Reaction], message: Message) -> None:
+
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT "Id" FROM "Reactions" WHERE "MessageId" = %s AND "Deleted" = 0 LIMIT 1', (message.id,))
     row = cur.fetchone()
+
     if not row:
-        print(f'Error deleting reactions, message {message.id} not found')
+        return
     else:
         for reaction in reactions:
             try:
                 cur.execute('UPDATE "Reactions" SET "DeleteDateUTC" = %s, "Deleted" = 1 WHERE "MessageId" = %s AND "Deleted" = 0', (get_date(), message.id))
+                conn.commit()
             except Exception as e:
-                emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji # emoji is either an object with property "name" or a string. Custom vs default emojis.
+                emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji 
                 print(f'Error deleting reaction {emoji_name} with exception {e}')
-    conn.commit()
+
     cur.close()
     conn.close()
 
@@ -277,6 +284,7 @@ def get_last_updated_message(channel_id) -> tuple:
     cur.execute('SELECT "M"."Id", "M"."Content", "U"."Username", "M"."Deleted" FROM "Message" "M" INNER JOIN "User" "U" ON "U"."Id" = "M"."UserId" WHERE "M"."ChannelId" = %s AND "M"."UpdateDateUTC" IS NOT NULL ORDER BY "M"."UpdateDateUTC" DESC LIMIT 1', (channel_id,))
     row = cur.fetchone()
 
+    #TODO clean up variable names
     if not row:
         return (None,)
     if row[3] == 0:
