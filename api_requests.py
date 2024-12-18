@@ -33,12 +33,11 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     params = dict()
     if start_date and not end_date:
         params['start_date'] = start_date
-    elif start_date and end_date: # API defaults end to today but if an end is specified, it needs a start
+    elif start_date and end_date:
         params['start_date'] = start_date
         params['end_date'] = end_date
     params['api_key'] = api_key
 
-    # Header seems to stop it from thinking I'm a bot, won't return otherwise
     try:
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'}).json()
     except ConnectionError as e:
@@ -50,7 +49,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     except Exception:
         return None
 
-    # Make sure it's a list
+    # Make sure data is a list
     if type(response) == dict:
         data: list[dict] = list()
         data.append(response)
