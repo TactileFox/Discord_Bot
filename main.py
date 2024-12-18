@@ -219,7 +219,8 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
 
     start_date = None
     end_date = None    
-    current_date = dt.now(timezone.utc)
+    curr_dt = dt.now(timezone.utc)
+    current_date = dt(curr_dt.year, curr_dt.month, curr_dt.day)
 
     if start_day and start_month and start_year:
         try:
@@ -228,12 +229,13 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
             if start_date_obj > current_date: start_date_obj = current_date
             else: start_date = start_date_obj.strftime("%Y-%m-%d")
 
-            if (not end_day or not end_month or not end_year) and (start_date_obj + timedelta(days=90)) > current_date:
+            if (not end_day or not end_month or not end_year) and (start_date_obj + timedelta(days=90)) < current_date:
                 end_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
-            else: end_date = current_date
+            else: end_date = current_date.strftime("%Y-%m-%d")
             
-        except:
+        except Exception as e:
             start_date = None
+            
     if end_day and end_month and end_year:
         try:
             end_date_obj = dt(end_year, end_month, end_day)
