@@ -3,7 +3,7 @@ import asyncio
 import psycopg2 as psy
 import api_requests as api
 import psql_connection as psql
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt, timedelta, timezone
 from typing import Final, Optional
 from dotenv import load_dotenv
 from discord import Intents, Client, Message, Reaction, User, Embed, Colour, WebhookMessage
@@ -219,12 +219,18 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
 
     start_date = None
     end_date = None    
+    current_date = dt.now(timezone.utc)
 
     if start_day and start_month and start_year:
         try:
             start_date_obj = dt(start_year, start_month, start_day)
-            if not end_day or not end_month or not end_year:
-                start_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
+
+            if start_date_obj > current_date: start_date_obj = current_date
+            else: start_date = start_date_obj.strftime("%Y-%m-%d")
+
+            if (not end_day or not end_month or not end_year) and (start_date_obj + timedelta(days=90)) > current_date:
+                end_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
+            else: end_date = current_date
             
         except:
             start_date = None
@@ -239,6 +245,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
                 end_date = start_date_obj.strftime("%Y-%m-%d") if (start_date_obj - end_date_obj).days <= 365 else (start_date_obj + timedelta(days=365)).strftime("%Y-%m-%d")
         except:
             end_date = None
+
 
     await ctx.interaction.response.defer()
 
