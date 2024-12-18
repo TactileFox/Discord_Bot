@@ -223,7 +223,9 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
     if start_day and start_month and start_year:
         try:
             start_date_obj = dt(start_year, start_month, start_day)
-            start_date = start_date_obj.strftime("%Y-%m-%d")
+            if not end_day or not end_month or not end_year:
+                start_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
+            
         except:
             start_date = None
     if end_day and end_month and end_year:
