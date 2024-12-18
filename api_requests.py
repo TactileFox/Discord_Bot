@@ -38,8 +38,12 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         params['end_date'] = end_date
     params['api_key'] = api_key
 
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+    }
+
     try:
-        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'}).json()
+        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers).json()
     except ConnectionError as e:
         print(f'Connection Error {e}')
         return None
