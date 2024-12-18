@@ -42,6 +42,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
 
+    #TODO: Add handling for when it does not return 200. Likely need to move the .json() to a new line.
     try:
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers).json()
     except ConnectionError as e:
