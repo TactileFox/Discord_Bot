@@ -100,6 +100,7 @@ def log_message(conn: connection, message: Message) -> None:
     if not row:
         try:
             cur.execute(insert_message_query(), (message.id, message.author.id, message.guild.id, message.content, message.channel.id, get_date()))
+            conn.commit()
         except Exception as e:
             print(f'Error inserting message {message.content[:20]}... with exception {e}')
 
@@ -113,6 +114,7 @@ def log_attachment(conn: connection, attachment: Attachment, message_id):
     if not row:
         try:
             cur.execute(insert_attachment_query(), (attachment.id, attachment.filename, attachment.content_type, attachment.url, message_id, get_date()))
+            conn.commit()
             print(f'Attachment {attachment.filename[:20]} added successfully')
         except Exception as e:
             print(f'Error inserting attachment {attachment.filename[:20]} with exception {e}')
@@ -131,8 +133,10 @@ def log_user_mention(conn: connection, user: User, message_id, message_sender_id
     if not row: 
         try:
             cur.execute(insert_user_mentions_query(), (message_id, message_sender_id, user.id, get_date()))
+            conn.commit()
         except Exception as e:
             print(f'Error inserting mention {user.name} with exception {e}')
+
     cur.close()
 def get_message_counts(guild: Guild) -> File:
     conn = get_db_connection()
@@ -176,6 +180,7 @@ async def log_message_edit(before: Message, after: Message) -> None:
             if attachment not in after.attachments:
                 # Delete record
                 cur.execute(delete_attachment_query(), (get_date(), get_date(), attachment.url, before.id)) 
+                conn.commit()
         # Log new attachments
         for attachment in after.attachments:
             if attachment not in before.attachments:
@@ -185,17 +190,21 @@ async def log_message_edit(before: Message, after: Message) -> None:
             if mention not in after.mentions:
                 # Delete record
                 cur.execute(delete_user_mention_query(), (get_date(), get_date(), before.id, mention.id))
+                conn.commit()
         for mention in after.mentions:
             if mention not in before.mentions:
                 # Insert record
                 log_user_mention(conn, mention, before.id, before.author.id)
         cur.execute(update_message_query(), (after.content, 1, 0, get_date(), None, after.id))
+        conn.commit()
     except Exception as e:
         print(f'Error updating message with exception {e}')
     try:
         cur.execute('INSERT INTO "MessageEditHistory" ("MessageId", "BeforeContent", "AfterContent", "CreateDateUTC") VALUES (%s, %s, %s, %s)', (before.id, before.content, after.content, get_date()))
+        conn.commit()
     except Exception as e:
         print(f'Error inserting message edit with exception {e}')
+        
     conn.commit()
     cur.close()
     conn.close()
