@@ -63,7 +63,7 @@ async def log_channel(conn: Connection, message: Message) -> None:
     row = await conn.fetchrow(get_channel_query(), channel.id)
 
     # Update channel.name property
-    channel_name = await create_channel_name(message)
+    channel_name = create_channel_name(message)
 
     if not row:
         try:
@@ -256,7 +256,7 @@ def create_channel_name(message: Message):
     else:
         return message.channel.name
 def get_date():
-    return datetime.now(timezone.utc)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 async def get_db_connection() -> Connection:
 
     DB_NAME: Final[str] = os.getenv('DB_NAME')
