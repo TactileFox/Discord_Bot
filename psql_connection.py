@@ -183,7 +183,7 @@ async def log_message_deletion(message: Message) -> None:
     if not row:
         await create_message_log(message)
     try: 
-        await conn.execute("""UPDATE "Message" SET "DeleteDateUTC" = $2, "Deleted" = $3, "UpdateDateUTC" = $4 WHERE "Id" = $5""", get_date(), 1, get_date(), message.id)
+        await conn.execute("""UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = $2, "UpdateDateUTC" = $3 WHERE "Id" = $4""", get_date(), 1, get_date(), message.id)
     except Exception as e:
         print(f'Error updating message {message.id} with exception {e}')
     
