@@ -1,12 +1,11 @@
 import os 
 import asyncio
-import psycopg2 as psy
 import api_requests as api
 import psql_connection as psql
 from datetime import datetime as dt, timedelta, timezone
 from typing import Final, Optional
 from dotenv import load_dotenv
-from discord import Intents, Client, Message, Reaction, User, Embed, Colour, WebhookMessage
+from discord import Intents, Message, Reaction, User, Embed, Colour
 from discord.ext import commands
 
 # Load Bot Token
@@ -69,7 +68,7 @@ async def on_reaction_add(reaction: Reaction, user: User) -> None:
     
     if user == bot.user or reaction.message.author == bot.user: 
         return 
-    psql.log_message_reaction(reaction, user)
+    await psql.log_message_reaction(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
@@ -77,7 +76,7 @@ async def on_reaction_remove(reaction: Reaction, user: User) -> None:
     
     if user == bot.user or reaction.message.author == bot.user: 
         return 
-    psql.log_reaction_deletion(reaction, user)
+    await psql.log_reaction_deletion(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
@@ -85,7 +84,7 @@ async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None
     # TODO turn this into a for loop here instead of in the psql function.
     # TODO make sure message.author is not the bot, 
     # don't need to check if reaction is from bot.
-    psql.log_reaction_clear(reactions, message)
+    await psql.log_reaction_clear(reactions, message)
 
 # @bot.event
 # async def on_reaction_clear_emoji(reaction: Reaction) -> None:
@@ -95,15 +94,14 @@ async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None
 # Commands
 @bot.hybrid_command(name='get_message_count_by_user')
 async def message_count_by_user(ctx: commands.Context):
-
-    await ctx.send('Here is your graph:', file=psql.get_message_counts(ctx.guild))
+    await ctx.send('Here is your graph:', file= await psql.get_message_counts(ctx.guild))
 
 # TODO update to include images. Get the urls from the attachments table and then copy url embed logic from get_astronomy_by_date
 @bot.hybrid_command(name="snipe") # returns last updated message's content for that channel
 async def snipe(ctx: commands.Context):
 
     #TODO add handling for when these are NULL
-    before, after, username, action = psql.get_last_updated_message(ctx.channel.id)
+    before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
     ending_periods_after = '...' if len(after) > 1000 else '' 
     ending_periods_before = '...' if before and len(before) > 1000 else '' #TODO I think this doesn't need to check that before exists?
     if action == 'deleted':
@@ -187,7 +185,7 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
         else:
             city, state, forecast = data
     except:
-        ctx.interaction.followup.send('Error getting weather, please try again')
+        await ctx.interaction.followup.send('Error getting weather, please try again')
         return
     
     forecast = forecast[:6]
