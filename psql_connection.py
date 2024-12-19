@@ -244,7 +244,7 @@ async def get_last_updated_message(channel_id) -> tuple:
         username = row['Username']
         row = await conn.fetchrow('SELECT "BeforeContent", "AfterContent" FROM "MessageEditHistory" WHERE "MessageId" = $1 ORDER BY "CreateDateUTC" DESC LIMIT 1', row['MessageId'])
         await conn.close()
-        return (row['MessageId'], row['Content'], username, 'edited')
+        return (row['BeforeContent'], row['AfterContent'], username, 'edited')
     else:
         await conn.close()
         return (None, row['Content'], row['Username'], 'deleted')
