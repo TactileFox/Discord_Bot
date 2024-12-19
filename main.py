@@ -68,7 +68,7 @@ async def on_reaction_add(reaction: Reaction, user: User) -> None:
     
     if user == bot.user or reaction.message.author == bot.user: 
         return 
-    psql.log_message_reaction(reaction, user)
+    await psql.log_message_reaction(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
@@ -76,7 +76,7 @@ async def on_reaction_remove(reaction: Reaction, user: User) -> None:
     
     if user == bot.user or reaction.message.author == bot.user: 
         return 
-    psql.log_reaction_deletion(reaction, user)
+    await psql.log_reaction_deletion(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
@@ -84,7 +84,7 @@ async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None
     # TODO turn this into a for loop here instead of in the psql function.
     # TODO make sure message.author is not the bot, 
     # don't need to check if reaction is from bot.
-    psql.log_reaction_clear(reactions, message)
+    await psql.log_reaction_clear(reactions, message)
 
 # @bot.event
 # async def on_reaction_clear_emoji(reaction: Reaction) -> None:
@@ -101,7 +101,7 @@ async def message_count_by_user(ctx: commands.Context):
 async def snipe(ctx: commands.Context):
 
     #TODO add handling for when these are NULL
-    before, after, username, action = psql.get_last_updated_message(ctx.channel.id)
+    before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
     ending_periods_after = '...' if len(after) > 1000 else '' 
     ending_periods_before = '...' if before and len(before) > 1000 else '' #TODO I think this doesn't need to check that before exists?
     if action == 'deleted':
