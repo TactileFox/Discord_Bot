@@ -192,7 +192,7 @@ async def log_message_reaction(reaction: Reaction, user: User) -> None:
 
     conn = await get_db_connection()
 
-    await log_user(get_db_connection(), user)
+    await log_user(conn, user)
 
     self_react = int(reaction.message.author.id == user.id) 
 
