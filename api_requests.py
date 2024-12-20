@@ -42,24 +42,37 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
 
-    #TODO: Add handling for when it does not return 200. Likely need to move the .json() to a new line.
+    
     try:
-        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers).json()
+        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
+        response.raise_for_status()
+        content = response.json()
+
+        # API is weird and returns an empty list for a few hours if asked for the following day
+        if len(content) == 0:
+            response = r.get(url=f'https://api.nasa.gov/planetary/apod', params={'api_key':api_key}, headers=headers)
+            response.raise_for_status()
+            content = response.json()
+
     except ConnectionError as e:
         print(f'Connection Error {e}')
         return None
     except socket.gaierror as e:
         print(f'Connection Error {e}')
         return None
-    except Exception:
+    except r.HTTPError as e:
+        print(e.args)
+        return None
+    except Exception as e:
+        print(f'{e}')
         return None
 
     # Make sure data is a list
-    if type(response) == dict:
+    if type(content) == dict:
         data: list[dict] = list()
-        data.append(response)
+        data.append(content)
     else:
-        data = response
+        data = content
 
     urls: list[str] = list()
     dates: list[str] = list()
