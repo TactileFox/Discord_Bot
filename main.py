@@ -180,12 +180,12 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
 
     try: 
         data = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
-        if data == None:
+        if type(data) == Exception:
             raise Exception('Error Getting Weather from API')
         else:
             city, state, forecast = data
     except:
-        await ctx.interaction.followup.send('Error getting weather, please try again')
+        await ctx.interaction.followup.send(f'Error getting weather, please try again')
         return
     
     forecast = forecast[:6]

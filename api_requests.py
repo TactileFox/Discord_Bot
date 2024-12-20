@@ -6,25 +6,24 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
     # Get second url and city/state
     try:
-        response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}').json()
-        if not response: raise Exception('API Returned None')
-    except Exception as e:
-        print(f'Exception getting weather {e}')
-        return None
+        response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
+        response.raise_for_status()
+        content = response.json()
     
-    city = response['properties']['relativeLocation']['properties']['city']
-    state = response['properties']['relativeLocation']['properties']['state']
+        city = content['properties']['relativeLocation']['properties']['city']
+        state = content['properties']['relativeLocation']['properties']['state']
 
-    # Forecast Info
-    try:
-        response = r.get(url=f"{response['properties']['forecast']}?units={unit_type}").json()
-        if not response: raise Exception('API Returned None')
+        # Forecast Info
+        response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
+        response.raise_for_status()
+        content = response.json()
+
     except Exception as e:
         print(f'Exception getting weather {e}')
-        return None
+        return e
 
     # Return a list of dictionaries containing only the forecast info
-    return (city, state, response['properties']['periods'])
+    return (city, state, content['properties']['periods'])
 
 async def get_astronomy_picture(start_date: str = None, end_date: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
 
