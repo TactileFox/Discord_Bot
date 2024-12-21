@@ -244,7 +244,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
                 end_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
             else: end_date = current_date.strftime("%Y-%m-%d")
             
-        except Exception as e:
+        except ValueError:
             start_date = None
 
     if end_day and end_month and end_year:
@@ -257,7 +257,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
             else:
                 start_date = end_date_obj.strftime("%Y-%m-%d")
                 end_date = start_date_obj.strftime("%Y-%m-%d") if (start_date_obj - end_date_obj).days <= 365 else (start_date_obj + timedelta(days=365)).strftime("%Y-%m-%d")
-        except:
+        except ValueError:
             end_date = None
 
 
