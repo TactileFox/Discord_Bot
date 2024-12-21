@@ -8,7 +8,8 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        response.raise_for_status()
+        if response.status_code == 404: raise r.HTTPError('Invalid Points')
+        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
         content = response.json()
     
         city = content['properties']['relativeLocation']['properties']['city']
@@ -16,12 +17,16 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
         # Forecast Info
         response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        response.raise_for_status()
+        if response.status_code == 404: raise r.HTTPError('Invalid Points')
+        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
         content = response.json()
 
+    except r.HTTPError as e:
+        print('Invalid Weather Coordinates')
+        return e
     except Exception as e:
         print(f'Exception getting weather {e}')
-        return e
+        return Exception('API Error')
 
     # Return a list of dictionaries containing only the forecast info
     return (city, state, content['properties']['periods'])

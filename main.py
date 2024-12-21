@@ -181,7 +181,7 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
     try: 
         data = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
         if type(data) == Exception:
-            raise Exception('Error Getting Weather from API')
+            raise Exception(f'Error Getting Weather from API: {data}')
         else:
             city, state, forecast = data
     except:
