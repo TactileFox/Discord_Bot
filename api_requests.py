@@ -62,16 +62,16 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
 
     except ConnectionError as e:
         print(f'Connection Error {e}')
-        return None
+        raise e
     except socket.gaierror as e:
         print(f'Connection Error {e}')
-        return None
+        raise e
     except r.HTTPError as e:
         print(e)
-        return None
+        raise e
     except Exception as e:
-        print(f'{e}')
-        return None
+        print(e)
+        raise e
 
     # Make sure data is a list
     if type(content) == dict:
