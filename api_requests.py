@@ -52,7 +52,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         params['start_date'] = start_date
         params['end_date'] = end_date
     params['api_key'] = api_key
-    params['thumbs':True]
+    params['thumbs'] = True
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
@@ -65,10 +65,10 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         return response.json()
 
     try:
-        content = get_request(params=params)
+        content = await get_request(params=params)
 
         # If empty list
-        if len(content) == 0: content = get_request(params={'api_key':api_key, 'thumbs':True})
+        if len(content) == 0: content = await get_request(params={'api_key':api_key, 'thumbs':True})
 
     except ConnectionError as e:
         # print(f'Connection Error {e}')
@@ -97,9 +97,9 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
 
     try:
         for point in data:
-            if point['media_type'] not in ('image', 'video'): continue
-            if not point['hdurl']: continue
-            urls.append(point['hdurl'])
+            if point['media_type'] == 'image': urls.append(point['hdurl'])
+            elif point['media_type'] == 'video': urls.append(point['thumbnail_url'])
+            else: continue
             dates.append(point['date'])
             titles.append(point['title'])
             explanations.append(point['explanation'])
