@@ -8,9 +8,9 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        if response.status_code == 400: raise r.HTTPError('Bad Request')
-        elif response.status_code == 404: raise r.HTTPError(f'Invalid Points: {lat}, {lon}')
-        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
+        if response.status_code == 400: raise r.exceptions.HTTPError('Bad Request')
+        elif response.status_code == 404: raise r.exceptions.HTTPError(f'Invalid Points: {lat}, {lon}')
+        elif response.status_code == 500: raise r.exceptions.HTTPError('Unexpected Error')
         
         content = response.json()
     
@@ -19,9 +19,9 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
         # Forecast Info
         response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        if response.status_code == 400: raise r.HTTPError('Bad Request')
-        elif response.status_code == 404: raise r.HTTPError('Invalid Grid')
-        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
+        if response.status_code == 400: raise r.exceptions.HTTPError('Bad Request')
+        elif response.status_code == 404: raise r.exceptions.HTTPError('Invalid Grid')
+        elif response.status_code == 500: raise r.exceptions.HTTPError('Unexpected Error')
         
         content = response.json()
 
@@ -30,7 +30,7 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     except ConnectionError as e:
         # log
         raise e
-    except r.HTTPError as e:
+    except r.exceptions.HTTPError as e:
         # log
         raise e
     except KeyError as e:
@@ -60,9 +60,10 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     
     async def get_request(params: dict):
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
-        if response.status_code == 400: raise r.HTTPError('Bad Request')
-        elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
-        response.raise_for_status()
+        if response.status_code == 400: raise r.exceptions.HTTPError('Bad Request')
+        elif response.status_code == 403: raise r.exceptions.HTTPError('No API Key Passed')
+        elif response.status_code == 500: raise r.exceptions.HTTPError('API Error')
+        else: response.raise_for_status()
         return response.json()
 
     try:
@@ -77,7 +78,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     except socket.gaierror as e:
         # print(f'Connection Error {e}')
         raise e
-    except r.HTTPError as e:
+    except r.exceptions.HTTPError as e:
         # print(e)
         raise e
     except Exception as e:

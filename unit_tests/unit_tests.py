@@ -2,7 +2,7 @@ import unittest
 import json
 from api_requests import get_usa_weather, get_astronomy_picture
 from unittest.mock import patch, MagicMock
-from requests import HTTPError
+from requests.exceptions import HTTPError
 
 # In terminal, run python -m unittest unit_tests.py
 
@@ -50,8 +50,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Bad Request')
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')
 
     async def test_weather_api_points_404(self):
 
@@ -62,8 +62,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Invalid Points: 46.0, -76.0')
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')
 
     async def test_weather_api_points_500(self):
 
@@ -74,8 +74,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Unexpected Error')     
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')  
 
     async def test_weather_api_forecast_400(self):
 
@@ -89,8 +89,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.side_effect = [mock_response_one, mock_response_two] 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Bad Request')     
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')     
 
     async def test_weather_api_forecast_404(self):
 
@@ -104,8 +104,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.side_effect = [mock_response_one, mock_response_two] 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Invalid Grid')    
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')
     
     async def test_weather_api_forecast_500(self):
 
@@ -119,8 +119,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.side_effect = [mock_response_one, mock_response_two] 
             
-            result = await get_usa_weather(46.0, -76.0, 'F')
-            self.assertEqual(result, 'Unexpected Error')    
+            with self.assertRaises(HTTPError):
+                await get_usa_weather(46.0, -76.0, 'F')
 
     async def test_apod_api_singular_200(self):
 
@@ -167,8 +167,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
             mock_response_400.status_code = 400
 
             mocker.return_value = mock_response_400
-
-            self.assertRaises(HTTPError, get_astronomy_picture())
+            with self.assertRaises(HTTPError):
+                await get_astronomy_picture()
 
     async def test_apod_403(self):
         with patch('requests.get') as mocker:
@@ -178,7 +178,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response_403
 
-            self.assertRaises(HTTPError, get_astronomy_picture())
+            with self.assertRaises(HTTPError):
+                await get_astronomy_picture()
 
     async def test_apod_500(self):
         with patch('requests.get') as mocker:
@@ -188,7 +189,8 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response_500
 
-            self.assertRaises(HTTPError, get_astronomy_picture())
+            with self.assertRaises(HTTPError):
+                await get_astronomy_picture()
 
     async def test_apod_empty_list_200(self):
         with patch('requests.get') as mocker:
@@ -224,5 +226,6 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.side_effect = [mock_response_empty_one, mock_response_empty_two]
 
-            self.assertRaises(HTTPError, get_astronomy_picture())
+            with self.assertRaises(HTTPError):
+                await get_astronomy_picture()
             self.assertEqual(mocker.call_count, 2)
