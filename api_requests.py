@@ -2,6 +2,7 @@ import os
 import socket
 import requests as r
 
+
 async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, str, list]:
 
     # Get second url and city/state
@@ -44,13 +45,15 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     
     try:
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
-        response.raise_for_status()
+        if response.status_code == 400: raise r.HTTPError('Bad Request')
+        elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
         content = response.json()
 
         # API is weird and returns an empty list for a few hours if asked for the following day
         if len(content) == 0:
             response = r.get(url=f'https://api.nasa.gov/planetary/apod', params={'api_key':api_key}, headers=headers)
-            response.raise_for_status()
+            if response.status_code == 400: raise r.HTTPError('Bad Request')
+            elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
             content = response.json()
 
     except ConnectionError as e:
@@ -60,7 +63,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         print(f'Connection Error {e}')
         return None
     except r.HTTPError as e:
-        print(e.args)
+        print(e)
         return None
     except Exception as e:
         print(f'{e}')
