@@ -180,15 +180,27 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
 
     units = 'si' if units.lower() in ('celcius, c, si, standard, metric') else 'us'
 
+    async def send_error_message(text: str):
+        await ctx.interaction.followup.send(f'**Unexpected Exception:** {text}')
+
     try: 
-        data = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
-        if type(data) == str:
-            raise Exception(f'Error Getting Weather from API: {data}')
-        else:
-            city, state, forecast = data
-    except Exception as e:
-        await ctx.interaction.followup.send(f'{e}')
+        city, state, forecast = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
+
+    except ConnectionError as e:
+        send_error_message('API Could Not Connect')
+        return 
+    except gaierror as e:
+        send_error_message('DNS Could Not Be Resolved')
+        return 
+    except HTTPError as e:
+        send_error_message(e.strerror)
         return
+    except KeyError as e:
+        send_error_message(e.__str__)
+        return
+    except Exception as e:
+        send_error_message("Unknown Error")
+        raise e
     
     forecast = forecast[:6]
     pages: list[Embed] = list()
@@ -266,6 +278,9 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
         return 
     except HTTPError as e:
         send_error_message(e.strerror)
+        return
+    except KeyError as e:
+        send_error_message(e.__str__)
         return
     except Exception as e:
         send_error_message("Unknown Error")
