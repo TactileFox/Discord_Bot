@@ -187,19 +187,19 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
         city, state, forecast = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
 
     except ConnectionError as e:
-        send_error_message('API Could Not Connect')
+        await send_error_message('API Could Not Connect')
         return 
     except gaierror as e:
-        send_error_message('DNS Could Not Be Resolved')
+        await send_error_message('DNS Could Not Be Resolved')
         return 
     except HTTPError as e:
-        send_error_message(e.strerror)
+        await send_error_message(str(e))
         return
     except KeyError as e:
-        send_error_message(e.__str__)
+        await send_error_message(str(e))
         return
     except Exception as e:
-        send_error_message("Unknown Error")
+        await send_error_message("Unknown Error")
         raise e
     
     forecast = forecast[:6]
@@ -270,19 +270,19 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
         data = await api.get_astronomy_picture(start_date, end_date)
         urls, dates, titles, explanations = data
     except ConnectionError as e:
-        send_error_message('API Could Not Connect')
+        await send_error_message('API Could Not Connect')
         return 
     except gaierror as e:
-        send_error_message('DNS Could Not Be Resolved')
+        await send_error_message('DNS Could Not Be Resolved')
         return 
     except HTTPError as e:
-        send_error_message(e.strerror)
+        await send_error_message(str(e))
         return
     except KeyError as e:
-        send_error_message(e.__str__)
+        await send_error_message(str(e))
         return
     except Exception as e:
-        send_error_message("Unknown Error")
+        await send_error_message("Unknown Error")
         raise e
 
     pages: list[Embed] = list()
