@@ -1,0 +1,88 @@
+{
+    "@context": [
+      "https://geojson.org/geojson-ld/geojson-context.jsonld",
+      {
+        "@version": "1.1",
+        "wx": "https://api.weather.gov/ontology#",
+        "s": "https://schema.org/",
+        "geo": "http://www.opengis.net/ont/geosparql#",
+        "unit": "http://codes.wmo.int/common/unit/",
+        "@vocab": "https://api.weather.gov/ontology#",
+        "geometry": {
+          "@id": "s:GeoCoordinates",
+          "@type": "geo:wktLiteral"
+        },
+        "city": "s:addressLocality",
+        "state": "s:addressRegion",
+        "distance": {
+          "@id": "s:Distance",
+          "@type": "s:QuantitativeValue"
+        },
+        "bearing": {
+          "@type": "s:QuantitativeValue"
+        },
+        "value": {
+          "@id": "s:value"
+        },
+        "unitCode": {
+          "@id": "s:unitCode",
+          "@type": "@id"
+        },
+        "forecastOffice": {
+          "@type": "@id"
+        },
+        "forecastGridData": {
+          "@type": "@id"
+        },
+        "publicZone": {
+          "@type": "@id"
+        },
+        "county": {
+          "@type": "@id"
+        }
+      }
+    ],
+    "id": "https://api.weather.gov/points/42.6806,-83.1337999",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [-83.1337999, 42.6806]
+    },
+    "properties": {
+      "@id": "https://api.weather.gov/points/42.6806,-83.1337999",
+      "@type": "wx:Point",
+      "cwa": "DTX",
+      "forecastOffice": "https://api.weather.gov/offices/DTX",
+      "gridId": "DTX",
+      "gridX": 61,
+      "gridY": 50,
+      "forecast": "https://api.weather.gov/gridpoints/DTX/61,50/forecast",
+      "forecastHourly": "https://api.weather.gov/gridpoints/DTX/61,50/forecast/hourly",
+      "forecastGridData": "https://api.weather.gov/gridpoints/DTX/61,50",
+      "observationStations": "https://api.weather.gov/gridpoints/DTX/61,50/stations",
+      "relativeLocation": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-83.119676, 42.686718]
+        },
+        "properties": {
+          "city": "Rochester",
+          "state": "MI",
+          "distance": {
+            "unitCode": "wmoUnit:m",
+            "value": 1340.0190148434
+          },
+          "bearing": {
+            "unitCode": "wmoUnit:degree_(angle)",
+            "value": 239
+          }
+        }
+      },
+      "forecastZone": "https://api.weather.gov/zones/forecast/MIZ069",
+      "county": "https://api.weather.gov/zones/county/MIC125",
+      "fireWeatherZone": "https://api.weather.gov/zones/fire/MIZ069",
+      "timeZone": "America/Detroit",
+      "radarStation": "KDTX"
+    }
+  }

@@ -180,12 +180,12 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
 
     try: 
         data = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
-        if type(data) == Exception:
-            raise Exception('Error Getting Weather from API')
+        if type(data) == str:
+            raise Exception(f'Error Getting Weather from API: {data}')
         else:
             city, state, forecast = data
-    except:
-        await ctx.interaction.followup.send(f'Error getting weather, please try again')
+    except Exception as e:
+        await ctx.interaction.followup.send(f'{e}')
         return
     
     forecast = forecast[:6]
@@ -273,7 +273,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
         pages.append(embed)
     
     timeout = float(30.0 * len(pages)) if len(pages) <= 10 else 300.0
-    await send_paginated_embed(ctx, pages, timeout=timeout) if len(pages) > 1 else await ctx.send(embed=pages[0])
+    await send_paginated_embed(ctx, pages, timeout=timeout) if len(pages) > 1 else await ctx.interaction.followup.send(embed=pages[0])
 
 # Start Bot
 def main() -> None:
