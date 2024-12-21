@@ -62,6 +62,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
         if response.status_code == 400: raise r.HTTPError('Bad Request')
         elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
+        response.raise_for_status()
         return response.json()
 
     try:
