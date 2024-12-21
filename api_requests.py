@@ -8,9 +8,10 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        if response.status_code == 404: raise r.HTTPError(f'Invalid Points: {lat}, {lon}')
+        if response.status_code == 400: raise r.HTTPError('Bad Request')
+        elif response.status_code == 404: raise r.HTTPError(f'Invalid Points: {lat}, {lon}')
         elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
-        elif response.status_code == 400: raise r.HTTPError('Bad Request')
+        
         content = response.json()
     
         city = content['properties']['relativeLocation']['properties']['city']
@@ -18,9 +19,10 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
         # Forecast Info
         response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        if response.status_code == 404: raise r.HTTPError('Invalid Grid')
+        if response.status_code == 400: raise r.HTTPError('Bad Request')
+        elif response.status_code == 404: raise r.HTTPError('Invalid Grid')
         elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
-        elif response.status_code == 400: raise r.HTTPError('Bad Request')
+        
         content = response.json()
 
     except r.HTTPError as e:
@@ -61,16 +63,16 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
             content = response.json()
 
     except ConnectionError as e:
-        print(f'Connection Error {e}')
+        # print(f'Connection Error {e}')
         raise e
     except socket.gaierror as e:
-        print(f'Connection Error {e}')
+        # print(f'Connection Error {e}')
         raise e
     except r.HTTPError as e:
-        print(e)
+        # print(e)
         raise e
     except Exception as e:
-        print(e)
+        # print(e)
         raise e
 
     # Make sure data is a list
@@ -85,12 +87,15 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     titles: list[str] = list()
     explanations: list[str] = list()
 
-    for point in data:
-        if point['media_type'] != 'image': continue
-        if not point['hdurl']: continue
-        urls.append(point['hdurl'])
-        dates.append(point['date'])
-        titles.append(point['title'])
-        explanations.append(point['explanation'])
-
+    try:
+        for point in data:
+            if point['media_type'] != 'image': continue
+            if not point['hdurl']: continue
+            urls.append(point['hdurl'])
+            dates.append(point['date'])
+            titles.append(point['title'])
+            explanations.append(point['explanation'])
+    except KeyError as e:
+        # log
+        raise e
     return (urls, dates, titles, explanations)
