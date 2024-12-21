@@ -25,8 +25,7 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
             cls.mock_nasa_apod_range_json = json.load(f)
         
 
-    async def test_weather_api(self):
-        #TODO what is a context manager??
+    async def test_weather_api_200(self):
         with patch('requests.get') as mocker:
 
             # Points
@@ -45,11 +44,87 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result_city, 'Rochester')
             self.assertEqual(result_state, 'MI')
             self.assertEqual(result_list, self.mock_nws_gridpoints_json['properties']['periods'])
-        
-            # Invalid Points
 
+    async def test_weather_api_points_400(self):
 
-            # Status 400
+        with patch('requests.get') as mocker:
+
+            mock_response = MagicMock()
+            mock_response.status_code = 400
+
+            mocker.return_value = mock_response 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Bad Request')
+
+    async def test_weather_api_points_404(self):
+
+        with patch('requests.get') as mocker:
+
+            mock_response = MagicMock()
+            mock_response.status_code = 404
+
+            mocker.return_value = mock_response 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Invalid Points: 46.0, -76.0')
+
+    async def test_weather_api_points_500(self):
+
+        with patch('requests.get') as mocker:
+
+            mock_response = MagicMock()
+            mock_response.status_code = 500
+
+            mocker.return_value = mock_response 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Unexpected Error')     
+
+    async def test_weather_api_forecast_400(self):
+
+        with patch('requests.get') as mocker:
+
+            mock_response_one = MagicMock()
+            mock_response_one.status_code = 200
+
+            mock_response_two = MagicMock()
+            mock_response_two.status_code = 400
+
+            mocker.side_effect = [mock_response_one, mock_response_two] 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Bad Request')     
+
+    async def test_weather_api_forecast_404(self):
+
+        with patch('requests.get') as mocker:
+
+            mock_response_one = MagicMock()
+            mock_response_one.status_code = 200
+
+            mock_response_two = MagicMock()
+            mock_response_two.status_code = 404
+
+            mocker.side_effect = [mock_response_one, mock_response_two] 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Invalid Grid')    
+    
+    async def test_weather_api_forecast_500(self):
+
+        with patch('requests.get') as mocker:
+
+            mock_response_one = MagicMock()
+            mock_response_one.status_code = 200
+
+            mock_response_two = MagicMock()
+            mock_response_two.status_code = 500
+
+            mocker.side_effect = [mock_response_one, mock_response_two] 
+            
+            result = await get_usa_weather(46.0, -76.0, 'F')
+            self.assertEqual(result, 'Unexpected Error')    
 
     async def test_apod_api_singular_200(self):
 
