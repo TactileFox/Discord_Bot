@@ -1,3 +1,4 @@
 .env
 sql_scripts.py
 .\unit_tests
+__init__.py
