@@ -6,25 +6,24 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
     # Get second url and city/state
     try:
-        response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}').json()
-        if not response: raise Exception('API Returned None')
-    except Exception as e:
-        print(f'Exception getting weather {e}')
-        return None
+        response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
+        response.raise_for_status()
+        content = response.json()
     
-    city = response['properties']['relativeLocation']['properties']['city']
-    state = response['properties']['relativeLocation']['properties']['state']
+        city = content['properties']['relativeLocation']['properties']['city']
+        state = content['properties']['relativeLocation']['properties']['state']
 
-    # Forecast Info
-    try:
-        response = r.get(url=f"{response['properties']['forecast']}?units={unit_type}").json()
-        if not response: raise Exception('API Returned None')
+        # Forecast Info
+        response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
+        response.raise_for_status()
+        content = response.json()
+
     except Exception as e:
         print(f'Exception getting weather {e}')
-        return None
+        return e
 
     # Return a list of dictionaries containing only the forecast info
-    return (city, state, response['properties']['periods'])
+    return (city, state, content['properties']['periods'])
 
 async def get_astronomy_picture(start_date: str = None, end_date: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
 
@@ -42,24 +41,37 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
 
-    #TODO: Add handling for when it does not return 200. Likely need to move the .json() to a new line.
+    
     try:
-        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers).json()
+        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
+        response.raise_for_status()
+        content = response.json()
+
+        # API is weird and returns an empty list for a few hours if asked for the following day
+        if len(content) == 0:
+            response = r.get(url=f'https://api.nasa.gov/planetary/apod', params={'api_key':api_key}, headers=headers)
+            response.raise_for_status()
+            content = response.json()
+
     except ConnectionError as e:
         print(f'Connection Error {e}')
         return None
     except socket.gaierror as e:
         print(f'Connection Error {e}')
         return None
-    except Exception:
+    except r.HTTPError as e:
+        print(e.args)
+        return None
+    except Exception as e:
+        print(f'{e}')
         return None
 
     # Make sure data is a list
-    if type(response) == dict:
+    if type(content) == dict:
         data: list[dict] = list()
-        data.append(response)
+        data.append(content)
     else:
-        data = response
+        data = content
 
     urls: list[str] = list()
     dates: list[str] = list()
