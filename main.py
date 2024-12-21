@@ -7,7 +7,7 @@ from typing import Final, Optional
 from dotenv import load_dotenv
 from discord import Intents, Message, Reaction, User, Embed, Colour
 from discord.ext import commands
-from requests import HTTPError
+from requests.exceptions import HTTPError, ConnectionError
 from socket import gaierror
 
 # Load Bot Token
@@ -231,8 +231,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
 
     start_date = None
     end_date = None    
-    curr_dt = dt.now(timezone.utc)
-    current_date = dt(curr_dt.year, curr_dt.month, curr_dt.day)
+    current_date = dt.now(timezone.utc).replace(tzinfo=None)
 
     if start_day and start_month and start_year:
         try:
