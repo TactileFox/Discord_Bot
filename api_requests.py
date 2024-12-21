@@ -18,7 +18,7 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
         # Forecast Info
         response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        if response.status_code == 404: raise r.HTTPError('Invalid Points')
+        if response.status_code == 404: raise r.HTTPError('Invalid Grid')
         elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
         elif response.status_code == 400: raise r.HTTPError('Bad Request')
         content = response.json()
