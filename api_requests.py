@@ -52,23 +52,23 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         params['start_date'] = start_date
         params['end_date'] = end_date
     params['api_key'] = api_key
+    params['thumbs':True]
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
     
-    try:
+    async def get_request(params: dict):
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
         if response.status_code == 400: raise r.HTTPError('Bad Request')
         elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
-        content = response.json()
+        return response.json()
 
-        # API is weird and returns an empty list for a few hours if asked for the following day
-        if len(content) == 0:
-            response = r.get(url=f'https://api.nasa.gov/planetary/apod', params={'api_key':api_key}, headers=headers)
-            if response.status_code == 400: raise r.HTTPError('Bad Request')
-            elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
-            content = response.json()
+    try:
+        content = get_request(params=params)
+
+        # If empty list
+        if len(content) == 0: content = get_request(params={'api_key':api_key, 'thumbs':True})
 
     except ConnectionError as e:
         # print(f'Connection Error {e}')
@@ -97,7 +97,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
 
     try:
         for point in data:
-            if point['media_type'] != 'image': continue
+            if point['media_type'] not in ('image', 'video'): continue
             if not point['hdurl']: continue
             urls.append(point['hdurl'])
             dates.append(point['date'])
