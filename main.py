@@ -102,10 +102,12 @@ async def message_count_by_user(ctx: commands.Context):
 @bot.hybrid_command(name="snipe") # returns last updated message's content for that channel
 async def snipe(ctx: commands.Context):
 
-    #TODO add handling for when these are NULL
-    before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
+    try: 
+        before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
+    except ValueError:
+        await ctx.send("No Deleted/Edited Messages in Cache", ephemeral=True)
     ending_periods_after = '...' if len(after) > 1000 else '' 
-    ending_periods_before = '...' if before and len(before) > 1000 else '' #TODO I think this doesn't need to check that before exists?
+    ending_periods_before = '...' if before and len(before) > 1000 else ''
     if action == 'deleted':
         embed = Embed(title=f'Last deleted message: {username}', description=f'{after[:1000]}{ending_periods_after}')
         await ctx.send(embed=embed)

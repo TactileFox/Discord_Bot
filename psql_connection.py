@@ -239,7 +239,7 @@ async def get_last_updated_message(channel_id) -> tuple:
     row = await conn.fetchrow('SELECT "M"."Id" AS "MessageId", "M"."Content", "U"."Username", "M"."Deleted" FROM "Message" "M" INNER JOIN "User" "U" ON "U"."Id" = "M"."UserId" WHERE "M"."ChannelId" = $1 AND "M"."UpdateDateUTC" IS NOT NULL ORDER BY "M"."UpdateDateUTC" DESC LIMIT 1', channel_id)
 
     if not row:
-        return (None,)
+        raise ValueError('Row is empty')
     if row['Deleted'] == 0:
         username = row['Username']
         row = await conn.fetchrow('SELECT "BeforeContent", "AfterContent" FROM "MessageEditHistory" WHERE "MessageId" = $1 ORDER BY "CreateDateUTC" DESC LIMIT 1', row['MessageId'])
