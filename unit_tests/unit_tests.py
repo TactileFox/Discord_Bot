@@ -3,12 +3,7 @@ import json
 from api_requests import get_usa_weather, get_astronomy_picture
 from unittest.mock import patch, MagicMock
 
-# import psql_connection as psql
-# import main
-# from discord import Message, User, Guild
-
 # In terminal, run python -m unittest unit_tests.py
-    
 
 class TestAPI(unittest.IsolatedAsyncioTestCase):
 
@@ -210,4 +205,3 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             self.assertIsNone(await get_astronomy_picture())
             self.assertEqual(mocker.call_count, 2)
-    
