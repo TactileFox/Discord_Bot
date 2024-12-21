@@ -8,7 +8,7 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        if response.status_code == 404: raise r.HTTPError('Invalid Points')
+        if response.status_code == 404: raise r.HTTPError(f'Invalid Points: {lat}, {lon}')
         elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
         content = response.json()
     
@@ -22,11 +22,9 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
         content = response.json()
 
     except r.HTTPError as e:
-        print('Invalid Weather Coordinates')
-        return e
+        return f'{e}'
     except Exception as e:
-        print(f'Exception getting weather {e}')
-        return Exception('API Error')
+        return 'API Error'
 
     # Return a list of dictionaries containing only the forecast info
     return (city, state, content['properties']['periods'])
@@ -46,7 +44,6 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
-
     
     try:
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
