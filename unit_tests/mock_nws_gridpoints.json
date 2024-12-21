@@ -1,0 +1,304 @@
+{
+    "@context": [
+      "https://geojson.org/geojson-ld/geojson-context.jsonld",
+      {
+        "@version": "1.1",
+        "wx": "https://api.weather.gov/ontology#",
+        "geo": "http://www.opengis.net/ont/geosparql#",
+        "unit": "http://codes.wmo.int/common/unit/",
+        "@vocab": "https://api.weather.gov/ontology#"
+      }
+    ],
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [-83.1332, 42.6769],
+          [-83.1307, 42.6986],
+          [-83.1601, 42.7005],
+          [-83.1626, 42.6788],
+          [-83.1332, 42.6769]
+        ]
+      ]
+    },
+    "properties": {
+      "units": "us",
+      "forecastGenerator": "BaselineForecastGenerator",
+      "generatedAt": "2024-12-15T03:55:41+00:00",
+      "updateTime": "2024-12-15T02:24:41+00:00",
+      "validTimes": "2024-12-14T20:00:00+00:00/P7DT5H",
+      "elevation": {
+        "unitCode": "wmoUnit:m",
+        "value": 242.9256
+      },
+      "periods": [
+        {
+          "number": 1,
+          "name": "Tonight",
+          "startTime": "2024-12-14T22:00:00-05:00",
+          "endTime": "2024-12-15T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 28,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 50
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "ESE",
+          "icon": "https://api.weather.gov/icons/land/night/bkn/rain,50?size=medium",
+          "shortForecast": "Mostly Cloudy then Chance Light Rain",
+          "detailedForecast": "A chance of rain after 3am. Mostly cloudy. Low around 28, with temperatures rising to around 33 overnight. East southeast wind around 8 mph. Chance of precipitation is 50%. New rainfall amounts less than a tenth of an inch possible."
+        },
+        {
+          "number": 2,
+          "name": "Sunday",
+          "startTime": "2024-12-15T06:00:00-05:00",
+          "endTime": "2024-12-15T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 41,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 90
+          },
+          "windSpeed": "10 mph",
+          "windDirection": "SE",
+          "icon": "https://api.weather.gov/icons/land/day/rain,90?size=medium",
+          "shortForecast": "Rain",
+          "detailedForecast": "Rain. Cloudy, with a high near 41. Southeast wind around 10 mph, with gusts as high as 20 mph. Chance of precipitation is 90%. New rainfall amounts between a tenth and quarter of an inch possible."
+        },
+        {
+          "number": 3,
+          "name": "Sunday Night",
+          "startTime": "2024-12-15T18:00:00-05:00",
+          "endTime": "2024-12-16T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 37,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 70
+          },
+          "windSpeed": "3 to 7 mph",
+          "windDirection": "SSE",
+          "icon": "https://api.weather.gov/icons/land/night/rain,70/rain,40?size=medium",
+          "shortForecast": "Light Rain Likely",
+          "detailedForecast": "Rain likely. Cloudy. Low around 37, with temperatures rising to around 40 overnight. South southeast wind 3 to 7 mph. Chance of precipitation is 70%. New rainfall amounts less than a tenth of an inch possible."
+        },
+        {
+          "number": 4,
+          "name": "Monday",
+          "startTime": "2024-12-16T06:00:00-05:00",
+          "endTime": "2024-12-16T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 51,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 90
+          },
+          "windSpeed": "6 to 10 mph",
+          "windDirection": "S",
+          "icon": "https://api.weather.gov/icons/land/day/rain,80/rain,90?size=medium",
+          "shortForecast": "Rain",
+          "detailedForecast": "Rain. Cloudy, with a high near 51. South wind 6 to 10 mph, with gusts as high as 22 mph. Chance of precipitation is 90%. New rainfall amounts between a quarter and half of an inch possible."
+        },
+        {
+          "number": 5,
+          "name": "Monday Night",
+          "startTime": "2024-12-16T18:00:00-05:00",
+          "endTime": "2024-12-17T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 35,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 90
+          },
+          "windSpeed": "12 mph",
+          "windDirection": "WSW",
+          "icon": "https://api.weather.gov/icons/land/night/rain,90/rain,30?size=medium",
+          "shortForecast": "Rain",
+          "detailedForecast": "Rain before 1am. Mostly cloudy, with a low around 35. West southwest wind around 12 mph, with gusts as high as 24 mph. Chance of precipitation is 90%. New rainfall amounts between a quarter and half of an inch possible."
+        },
+        {
+          "number": 6,
+          "name": "Tuesday",
+          "startTime": "2024-12-17T06:00:00-05:00",
+          "endTime": "2024-12-17T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 41,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "7 to 12 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/day/bkn?size=medium",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": "Mostly cloudy, with a high near 41."
+        },
+        {
+          "number": 7,
+          "name": "Tuesday Night",
+          "startTime": "2024-12-17T18:00:00-05:00",
+          "endTime": "2024-12-18T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 30,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "2 to 6 mph",
+          "windDirection": "SW",
+          "icon": "https://api.weather.gov/icons/land/night/bkn/snow?size=medium",
+          "shortForecast": "Mostly Cloudy then Slight Chance Light Snow",
+          "detailedForecast": "A slight chance of snow after 1am. Mostly cloudy, with a low around 30."
+        },
+        {
+          "number": 8,
+          "name": "Wednesday",
+          "startTime": "2024-12-18T06:00:00-05:00",
+          "endTime": "2024-12-18T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 38,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "2 to 6 mph",
+          "windDirection": "SW",
+          "icon": "https://api.weather.gov/icons/land/day/snow?size=medium",
+          "shortForecast": "Chance Rain And Snow",
+          "detailedForecast": "A slight chance of snow before 7am, then a chance of rain and snow. Cloudy, with a high near 38."
+        },
+        {
+          "number": 9,
+          "name": "Wednesday Night",
+          "startTime": "2024-12-18T18:00:00-05:00",
+          "endTime": "2024-12-19T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 22,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "7 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/snow?size=medium",
+          "shortForecast": "Chance Rain And Snow",
+          "detailedForecast": "A chance of rain and snow before 1am. Mostly cloudy, with a low around 22."
+        },
+        {
+          "number": 10,
+          "name": "Thursday",
+          "startTime": "2024-12-19T06:00:00-05:00",
+          "endTime": "2024-12-19T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 30,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "WNW",
+          "icon": "https://api.weather.gov/icons/land/day/bkn?size=medium",
+          "shortForecast": "Partly Sunny",
+          "detailedForecast": "Partly sunny, with a high near 30."
+        },
+        {
+          "number": 11,
+          "name": "Thursday Night",
+          "startTime": "2024-12-19T18:00:00-05:00",
+          "endTime": "2024-12-20T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 22,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "7 mph",
+          "windDirection": "SW",
+          "icon": "https://api.weather.gov/icons/land/night/bkn/snow?size=medium",
+          "shortForecast": "Mostly Cloudy then Slight Chance Light Snow",
+          "detailedForecast": "A slight chance of snow after 1am. Mostly cloudy, with a low around 22."
+        },
+        {
+          "number": 12,
+          "name": "Friday",
+          "startTime": "2024-12-20T06:00:00-05:00",
+          "endTime": "2024-12-20T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 32,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "7 to 10 mph",
+          "windDirection": "SW",
+          "icon": "https://api.weather.gov/icons/land/day/snow?size=medium",
+          "shortForecast": "Chance Light Snow",
+          "detailedForecast": "A chance of snow. Mostly cloudy, with a high near 32."
+        },
+        {
+          "number": 13,
+          "name": "Friday Night",
+          "startTime": "2024-12-20T18:00:00-05:00",
+          "endTime": "2024-12-21T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 19,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "9 mph",
+          "windDirection": "WNW",
+          "icon": "https://api.weather.gov/icons/land/night/snow?size=medium",
+          "shortForecast": "Chance Light Snow",
+          "detailedForecast": "A chance of snow. Mostly cloudy, with a low around 19."
+        },
+        {
+          "number": 14,
+          "name": "Saturday",
+          "startTime": "2024-12-21T06:00:00-05:00",
+          "endTime": "2024-12-21T18:00:00-05:00",
+          "isDaytime": true,
+          "temperature": 26,
+          "temperatureUnit": "F",
+          "temperatureTrend": "",
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": null
+          },
+          "windSpeed": "10 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/day/snow?size=medium",
+          "shortForecast": "Chance Light Snow",
+          "detailedForecast": "A chance of snow before 1pm. Partly sunny, with a high near 26."
+        }
+      ]
+    }
+  }
