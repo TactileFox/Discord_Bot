@@ -273,7 +273,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
         pages.append(embed)
     
     timeout = float(30.0 * len(pages)) if len(pages) <= 10 else 300.0
-    await send_paginated_embed(ctx, pages, timeout=timeout) if len(pages) > 1 else await ctx.send(embed=pages[0])
+    await send_paginated_embed(ctx, pages, timeout=timeout) if len(pages) > 1 else await ctx.interaction.followup.send(embed=pages[0])
 
 # Start Bot
 def main() -> None:
