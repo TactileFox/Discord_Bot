@@ -170,6 +170,26 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             self.assertRaises(HTTPError, get_astronomy_picture())
 
+    async def test_apod_403(self):
+        with patch('requests.get') as mocker:
+            # 403
+            mock_response_403 = MagicMock()
+            mock_response_403.status_code = 403
+
+            mocker.return_value = mock_response_403
+
+            self.assertRaises(HTTPError, get_astronomy_picture())
+
+    async def test_apod_500(self):
+        with patch('requests.get') as mocker:
+            # 403
+            mock_response_500 = MagicMock()
+            mock_response_500.status_code = 500
+
+            mocker.return_value = mock_response_500
+
+            self.assertRaises(HTTPError, get_astronomy_picture())
+
     async def test_apod_empty_list_200(self):
         with patch('requests.get') as mocker:
             # Empty List, 200
