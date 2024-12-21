@@ -7,6 +7,8 @@ from typing import Final, Optional
 from dotenv import load_dotenv
 from discord import Intents, Message, Reaction, User, Embed, Colour
 from discord.ext import commands
+from requests import HTTPError
+from socket import gaierror
 
 # Load Bot Token
 load_dotenv()
@@ -250,15 +252,24 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
 
     await ctx.interaction.response.defer()
 
+    async def send_error_message(text: str):
+        await ctx.interaction.followup.send(f'**Unexpected Exception:** {text}')
+
     try: 
         data = await api.get_astronomy_picture(start_date, end_date)
-        if data == None:
-            raise Exception('API Error, Please Try Again')
-        else:
-            urls, dates, titles, explanations = data
-    except Exception as e:
-        await ctx.interaction.followup.send(f'**Unexpected Exception:** {e}')
+        urls, dates, titles, explanations = data
+    except ConnectionError as e:
+        send_error_message('API Could Not Connect')
+        return 
+    except gaierror as e:
+        send_error_message('DNS Could Not Be Resolved')
+        return 
+    except HTTPError as e:
+        send_error_message(e.strerror)
         return
+    except Exception as e:
+        send_error_message("Unknown Error")
+        raise e
 
     pages: list[Embed] = list()
 

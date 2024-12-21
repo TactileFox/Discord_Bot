@@ -25,13 +25,21 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
         
         content = response.json()
 
+        # Return a list of dictionaries containing only the forecast info
+        return (city, state, content['properties']['periods'])
+    except ConnectionError as e:
+        # log
+        raise e
     except r.HTTPError as e:
-        return f'{e}'
+        # log
+        raise e
+    except KeyError as e:
+        # log
+        raise e
     except Exception as e:
-        return 'API Error'
+        # log
+        raise e
 
-    # Return a list of dictionaries containing only the forecast info
-    return (city, state, content['properties']['periods'])
 
 async def get_astronomy_picture(start_date: str = None, end_date: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
 
