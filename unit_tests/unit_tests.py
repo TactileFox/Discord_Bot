@@ -2,6 +2,7 @@ import unittest
 import json
 from api_requests import get_usa_weather, get_astronomy_picture
 from unittest.mock import patch, MagicMock
+from requests import HTTPError
 
 # In terminal, run python -m unittest unit_tests.py
 
@@ -167,7 +168,7 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.return_value = mock_response_400
 
-            self.assertIsNone(await get_astronomy_picture())
+            self.assertRaises(HTTPError, get_astronomy_picture())
 
     async def test_apod_empty_list_200(self):
         with patch('requests.get') as mocker:
@@ -203,5 +204,5 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
 
             mocker.side_effect = [mock_response_empty_one, mock_response_empty_two]
 
-            self.assertIsNone(await get_astronomy_picture())
+            self.assertRaises(HTTPError, get_astronomy_picture())
             self.assertEqual(mocker.call_count, 2)
