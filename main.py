@@ -83,9 +83,7 @@ async def on_reaction_remove(reaction: Reaction, user: User) -> None:
 # Messages but be in the internal cache to trigger this
 @bot.event
 async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None:
-    # TODO turn this into a for loop here instead of in the psql function.
-    # TODO make sure message.author is not the bot, 
-    # don't need to check if reaction is from bot.
+    if message.author == bot.user: return
     await psql.log_reaction_clear(reactions, message)
 
 # @bot.event
