@@ -103,7 +103,7 @@ async def on_reaction_remove(reaction: Reaction, user: User) -> None:
 @bot.event
 async def on_reaction_clear(message: Message, reactions: list[Reaction]) -> None:
     if message.author == bot.user: return
-    await psql.log_reaction_clear(reactions, message)
+    await psql.log_reaction_clear(message)
     logger.info(f'Reaction Clear: [{message.channel.name}] {message.author.name}: "{message.content[:40]}"')
 
 @bot.event
