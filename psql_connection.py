@@ -403,6 +403,7 @@ def snipe_query():
         FROM "Attachments" a
         WHERE a."Deleted" = 1
             AND a."MessageId" = m."Id"
+            AND a."DeleteDateUTC" > m."UpdateDateUTC"
         ORDER BY a."DeleteDateUTC" DESC
         LIMIT 1
     ) a ON 1=1
