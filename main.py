@@ -7,6 +7,8 @@ from typing import Final, Optional
 from dotenv import load_dotenv
 from discord import Intents, Message, Reaction, User, Embed, Colour
 from discord.ext import commands
+from requests.exceptions import HTTPError, ConnectionError
+from socket import gaierror
 
 # Load Bot Token
 load_dotenv()
@@ -74,22 +76,19 @@ async def on_reaction_add(reaction: Reaction, user: User) -> None:
 @bot.event
 async def on_reaction_remove(reaction: Reaction, user: User) -> None:
     
-    if user == bot.user or reaction.message.author == bot.user: 
-        return 
+    if user == bot.user or reaction.message.author == bot.user: return 
     await psql.log_reaction_deletion(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
-async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None:
-    # TODO turn this into a for loop here instead of in the psql function.
-    # TODO make sure message.author is not the bot, 
-    # don't need to check if reaction is from bot.
+async def on_reaction_clear(message: Message, reactions: list[Reaction]) -> None:
+    if message.author == bot.user: return
     await psql.log_reaction_clear(reactions, message)
 
-# @bot.event
-# async def on_reaction_clear_emoji(reaction: Reaction) -> None:
-#     psql.log_reaction_emoji_clear() 
-        # same as on_reaction_clear but I need to check emoji is the same. Need to add emoji id to table and likely an emoji table. If emoji is a str, it won't have an id
+@bot.event
+async def on_reaction_clear_emoji(reaction: Reaction) -> None:
+    if reaction.message.author == bot.user: return
+    await psql.log_reaction_clear_emoji(reaction, reaction.message) 
 
 # Commands
 @bot.hybrid_command(name='get_message_count_by_user')
@@ -100,10 +99,12 @@ async def message_count_by_user(ctx: commands.Context):
 @bot.hybrid_command(name="snipe") # returns last updated message's content for that channel
 async def snipe(ctx: commands.Context):
 
-    #TODO add handling for when these are NULL
-    before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
+    try: 
+        before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
+    except ValueError:
+        await ctx.send("No Deleted/Edited Messages in Cache", ephemeral=True)
     ending_periods_after = '...' if len(after) > 1000 else '' 
-    ending_periods_before = '...' if before and len(before) > 1000 else '' #TODO I think this doesn't need to check that before exists?
+    ending_periods_before = '...' if before and len(before) > 1000 else ''
     if action == 'deleted':
         embed = Embed(title=f'Last deleted message: {username}', description=f'{after[:1000]}{ending_periods_after}')
         await ctx.send(embed=embed)
@@ -178,15 +179,27 @@ async def get_weather(ctx: commands.Context, latitude: float, longitude: float, 
 
     units = 'si' if units.lower() in ('celcius, c, si, standard, metric') else 'us'
 
+    async def send_error_message(text: str):
+        await ctx.interaction.followup.send(f'**Unexpected Exception:** {text}')
+
     try: 
-        data = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
-        if type(data) == str:
-            raise Exception(f'Error Getting Weather from API: {data}')
-        else:
-            city, state, forecast = data
-    except Exception as e:
-        await ctx.interaction.followup.send(f'{e}')
+        city, state, forecast = await api.get_usa_weather(lat=latitude, lon=longitude, unit_type=units)
+
+    except ConnectionError as e:
+        await send_error_message('API Could Not Connect')
+        return 
+    except gaierror as e:
+        await send_error_message('DNS Could Not Be Resolved')
+        return 
+    except HTTPError as e:
+        await send_error_message(str(e))
         return
+    except KeyError as e:
+        await send_error_message(str(e))
+        return
+    except Exception as e:
+        await send_error_message("Unknown Error")
+        raise e
     
     forecast = forecast[:6]
     pages: list[Embed] = list()
@@ -217,8 +230,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
 
     start_date = None
     end_date = None    
-    curr_dt = dt.now(timezone.utc)
-    current_date = dt(curr_dt.year, curr_dt.month, curr_dt.day)
+    current_date = dt.now(timezone.utc).replace(tzinfo=None)
 
     if start_day and start_month and start_year:
         try:
@@ -231,7 +243,7 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
                 end_date = (start_date_obj + timedelta(days=90)).strftime("%Y-%m-%d")
             else: end_date = current_date.strftime("%Y-%m-%d")
             
-        except Exception as e:
+        except ValueError or OverflowError:
             start_date = None
 
     if end_day and end_month and end_year:
@@ -244,21 +256,30 @@ async def get_astronomy_by_date(ctx: commands.Context, start_day: Optional[int],
             else:
                 start_date = end_date_obj.strftime("%Y-%m-%d")
                 end_date = start_date_obj.strftime("%Y-%m-%d") if (start_date_obj - end_date_obj).days <= 365 else (start_date_obj + timedelta(days=365)).strftime("%Y-%m-%d")
-        except:
+        except ValueError or OverflowError:
             end_date = None
 
 
     await ctx.interaction.response.defer()
 
+    async def send_error_message(text: str):
+        await ctx.interaction.followup.send(f'**Unexpected Exception:** {text}')
+
     try: 
         data = await api.get_astronomy_picture(start_date, end_date)
-        if data == None:
-            raise Exception('API Error, Please Try Again')
-        else:
-            urls, dates, titles, explanations = data
-    except Exception as e:
-        await ctx.interaction.followup.send(f'**Unexpected Exception:** {e}')
+        urls, dates, titles, explanations = data
+    except ConnectionError as e:
+        await send_error_message('API Could Not Connect')
+        return 
+    except gaierror as e:
+        await send_error_message('DNS Could Not Be Resolved')
+        return 
+    except HTTPError or KeyError as e:
+        await send_error_message(str(e))
         return
+    except Exception as e:
+        await send_error_message("Unknown Error")
+        raise e
 
     pages: list[Embed] = list()
 

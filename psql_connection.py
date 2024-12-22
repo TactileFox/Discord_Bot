@@ -218,19 +218,31 @@ async def log_reaction_deletion(reaction: Reaction, user: User) -> None:
 async def log_reaction_clear(reactions: list[Reaction], message: Message) -> None:
 
     conn = await get_db_connection()
-    row = conn.fetchrow('SELECT "Id" FROM "Reactions" WHERE "MessageId" = $1 AND "Deleted" = 0 LIMIT 1', (message.id,))
+    row = await conn.fetchrow('SELECT "Id" FROM "Reactions" WHERE "MessageId" = $1 AND "Deleted" = 0 LIMIT 1', message.id)
 
     if not row:
         return
     else:
         for reaction in reactions:
             try:
+                emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji 
                 await conn.execute('UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE "MessageId" = $2 AND "Deleted" = 0', get_date(), message.id)
             except Exception as e:
-                emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji 
                 print(f'Error deleting reaction {emoji_name} with exception {e}')
 
     await conn.close()
+
+async def log_reaction_clear_emoji(reaction: Reaction, message: Message) -> None:
+
+    emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji 
+
+    conn = await get_db_connection()
+    row = await conn.fetchrow('SELECT "Id" FROM "Reactions" WHERE "MessageId" = $1 AND "Deleted" = 0 AND "Emoji" = $2 LIMIT 1', message.id, emoji_name)
+
+    if not row:
+        return
+    else:
+        await conn.execute('UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE "MessageId" = $2 AND "Deleted" = 0 AND "Emoji" = $3', get_date(), message.id, emoji_name)
 
 async def get_last_updated_message(channel_id) -> tuple:
 
@@ -239,7 +251,7 @@ async def get_last_updated_message(channel_id) -> tuple:
     row = await conn.fetchrow('SELECT "M"."Id" AS "MessageId", "M"."Content", "U"."Username", "M"."Deleted" FROM "Message" "M" INNER JOIN "User" "U" ON "U"."Id" = "M"."UserId" WHERE "M"."ChannelId" = $1 AND "M"."UpdateDateUTC" IS NOT NULL ORDER BY "M"."UpdateDateUTC" DESC LIMIT 1', channel_id)
 
     if not row:
-        return (None,)
+        raise ValueError('Row is empty')
     if row['Deleted'] == 0:
         username = row['Username']
         row = await conn.fetchrow('SELECT "BeforeContent", "AfterContent" FROM "MessageEditHistory" WHERE "MessageId" = $1 ORDER BY "CreateDateUTC" DESC LIMIT 1', row['MessageId'])

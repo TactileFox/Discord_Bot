@@ -1,6 +1,7 @@
 import os
 import socket
 import requests as r
+from requests.exceptions import HTTPError, ConnectionError
 
 
 async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, str, list]:
@@ -8,9 +9,10 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        if response.status_code == 404: raise r.HTTPError(f'Invalid Points: {lat}, {lon}')
-        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
-        elif response.status_code == 400: raise r.HTTPError('Bad Request')
+        if response.status_code == 400: raise HTTPError('Bad Request')
+        elif response.status_code == 404: raise HTTPError(f'Invalid Points: {lat}, {lon}')
+        elif response.status_code == 500: raise HTTPError('Unexpected Error')
+        
         content = response.json()
     
         city = content['properties']['relativeLocation']['properties']['city']
@@ -18,18 +20,27 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
 
         # Forecast Info
         response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        if response.status_code == 404: raise r.HTTPError('Invalid Grid')
-        elif response.status_code == 500: raise r.HTTPError('Unexpected Error')
-        elif response.status_code == 400: raise r.HTTPError('Bad Request')
+        if response.status_code == 400: raise HTTPError('Bad Request')
+        elif response.status_code == 404: raise HTTPError('Invalid Grid')
+        elif response.status_code == 500: raise HTTPError('Unexpected Error')
+        
         content = response.json()
 
-    except r.HTTPError as e:
-        return f'{e}'
+        # Return a list of dictionaries containing only the forecast info
+        return (city, state, content['properties']['periods'])
+    except ConnectionError as e:
+        # log
+        raise e
+    except HTTPError as e:
+        # log
+        raise e
+    except KeyError as e:
+        # log
+        raise e
     except Exception as e:
-        return 'API Error'
+        # log
+        raise e
 
-    # Return a list of dictionaries containing only the forecast info
-    return (city, state, content['properties']['periods'])
 
 async def get_astronomy_picture(start_date: str = None, end_date: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
 
@@ -42,36 +53,38 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         params['start_date'] = start_date
         params['end_date'] = end_date
     params['api_key'] = api_key
+    params['thumbs'] = True
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
     
-    try:
+    async def get_request(params: dict):
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
-        if response.status_code == 400: raise r.HTTPError('Bad Request')
-        elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
-        content = response.json()
+        if response.status_code == 400: raise HTTPError('Bad Request')
+        elif response.status_code == 403: raise HTTPError('No API Key Passed')
+        elif response.status_code == 500: raise HTTPError('API Error')
+        else: response.raise_for_status()
+        return response.json()
 
-        # API is weird and returns an empty list for a few hours if asked for the following day
-        if len(content) == 0:
-            response = r.get(url=f'https://api.nasa.gov/planetary/apod', params={'api_key':api_key}, headers=headers)
-            if response.status_code == 400: raise r.HTTPError('Bad Request')
-            elif response.status_code == 403: raise r.HTTPError('No API Key Passed')
-            content = response.json()
+    try:
+        content = await get_request(params=params)
+
+        # If empty list
+        if len(content) == 0: content = await get_request(params={'api_key':api_key, 'thumbs':True})
 
     except ConnectionError as e:
-        print(f'Connection Error {e}')
-        return None
+        # print(f'Connection Error {e}')
+        raise e
     except socket.gaierror as e:
         print(f'Connection Error {e}')
-        return None
-    except r.HTTPError as e:
-        print(e)
-        return None
+        raise e
+    except HTTPError as e:
+        # print(e)
+        raise e
     except Exception as e:
-        print(f'{e}')
-        return None
+        # print(e)
+        raise e
 
     # Make sure data is a list
     if type(content) == dict:
@@ -85,12 +98,15 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     titles: list[str] = list()
     explanations: list[str] = list()
 
-    for point in data:
-        if point['media_type'] != 'image': continue
-        if not point['hdurl']: continue
-        urls.append(point['hdurl'])
-        dates.append(point['date'])
-        titles.append(point['title'])
-        explanations.append(point['explanation'])
-
+    try:
+        for point in data:
+            if point['media_type'] == 'image': urls.append(point['hdurl'])
+            elif point['media_type'] == 'video': urls.append(point['thumbnail_url'])
+            else: continue
+            dates.append(point['date'])
+            titles.append(point['title'])
+            explanations.append(point['explanation'])
+    except KeyError as e:
+        # log
+        raise e
     return (urls, dates, titles, explanations)
