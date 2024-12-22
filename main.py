@@ -133,7 +133,7 @@ async def snipe(ctx: commands.Context):
         if url: embed.set_image(url=url)
         await ctx.send(embed=embed)
     elif action == 'Edited':
-        embed = Embed(title=f'Last edited message: {username}', description=f'**Before:**\n{before[:1000]}{ending_periods_before}\n\n**After:** \n{after[:1000]}{ending_periods_after}')
+        embed = Embed(title=f'Last edited message: {username}', description=f'**After:**\n{after[:1000]}{ending_periods_after}\n\n**Before:** \n{before[:1000]}{ending_periods_before}')
         if url: embed.set_image(url=url)
         await ctx.send(embed=embed)
     logger.info(f'Snipe Sent. Author: {ctx.author}, Channel: {ctx.channel.name}, Guild: {ctx.guild.name}')
