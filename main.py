@@ -118,22 +118,23 @@ async def message_count_by_user(ctx: commands.Context):
     await ctx.send('Here is your graph:', file= await psql.get_message_counts(ctx.guild))
     logger.info(f'Message Count By User Graph Sent. Author: {ctx.author}, Channel: {ctx.channel.name}, Guild: {ctx.guild.name}')
 
-# TODO update to include images. Get the urls from the attachments table and then copy url embed logic from get_astronomy_by_date
-@bot.hybrid_command(name="snipe") # returns last updated message's content for that channel
+@bot.hybrid_command(name="snipe")
 async def snipe(ctx: commands.Context):
 
     try: 
-        before, after, username, action = await psql.get_last_updated_message(ctx.channel.id)
+        before, after, username, action, url = await psql.get_last_updated_message(ctx.channel.id)
     except ValueError:
-        await ctx.send("No Deleted/Edited Messages in Cache", ephemeral=True)
-        logger.debug('No Deleted/Edited Messages in Cache')
+        await ctx.send("No Deleted/Edited Messages in Channel", ephemeral=True)
+        logger.debug('No Deleted/Edited Messages in Channel')
     ending_periods_after = '...' if len(after) > 1000 else '' 
     ending_periods_before = '...' if before and len(before) > 1000 else ''
-    if action == 'deleted':
+    if action == 'Deleted':
         embed = Embed(title=f'Last deleted message: {username}', description=f'{after[:1000]}{ending_periods_after}')
+        if url: embed.set_image(url=url)
         await ctx.send(embed=embed)
-    elif action == 'edited':
+    elif action == 'Edited':
         embed = Embed(title=f'Last edited message: {username}', description=f'**Before:**\n{before[:1000]}{ending_periods_before}\n\n**After:** \n{after[:1000]}{ending_periods_after}')
+        if url: embed.set_image(url=url)
         await ctx.send(embed=embed)
     logger.info(f'Snipe Sent. Author: {ctx.author}, Channel: {ctx.channel.name}, Guild: {ctx.guild.name}')
 

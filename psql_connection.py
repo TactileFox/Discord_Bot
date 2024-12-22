@@ -222,8 +222,7 @@ async def log_message_deletion(message: Message) -> None:
             get_date(), message.id)
         await conn.execute(
             """UPDATE "Attachments" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
-            get_date(), message.id
-        )
+            get_date(), message.id)
         logger.info(f'Deleted Message: {message.author.name} {message.content[:20]}... {message.id}')
 
     except Exception as e:
@@ -299,19 +298,16 @@ async def get_last_updated_message(channel_id) -> tuple:
 
     conn = await get_db_connection()
 
-    row = await conn.fetchrow('SELECT "M"."Id" AS "MessageId", "M"."Content", "U"."Username", "M"."Deleted" FROM "Message" "M" INNER JOIN "User" "U" ON "U"."Id" = "M"."UserId" WHERE "M"."ChannelId" = $1 AND "M"."UpdateDateUTC" IS NOT NULL ORDER BY "M"."UpdateDateUTC" DESC LIMIT 1', channel_id)
+    row = await conn.fetchrow(snipe_query(), channel_id)
+
+    await conn.close()
 
     if not row:
         logger.error('No Edited/Deleted Messages to Return')
         raise ValueError('Row is empty')
-    if row['Deleted'] == 0:
-        username = row['Username']
-        row = await conn.fetchrow('SELECT "BeforeContent", "AfterContent" FROM "MessageEditHistory" WHERE "MessageId" = $1 ORDER BY "CreateDateUTC" DESC LIMIT 1', row['MessageId'])
-        await conn.close()
-        return (row['BeforeContent'], row['AfterContent'], username, 'edited')
     else:
-        await conn.close()
-        return (None, row['Content'], row['Username'], 'deleted')
+        return (row['BeforeText'], row['CurrentText'], row['Username'], row['Action'], row['URL'])
+    
 
 # Helpers
 def create_channel_name(message: Message):
@@ -411,6 +407,7 @@ def snipe_query():
         LIMIT 1
     ) a ON 1=1
     WHERE m."UpdateDateUTC" IS NOT NULL
+        AND m."ChannelId" = $1
     ORDER BY m."UpdateDateUTC" DESC
     LIMIT 1;
 """
