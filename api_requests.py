@@ -1,8 +1,22 @@
 import os
 import socket
+import logging
 import requests as r
 from requests.exceptions import HTTPError, ConnectionError
 
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+file_handler = logging.FileHandler('api.log', encoding='utf-8')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.WARNING)
+logger.addHandler(stream_handler)
 
 async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, str, list]:
 
@@ -29,16 +43,16 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
         # Return a list of dictionaries containing only the forecast info
         return (city, state, content['properties']['periods'])
     except ConnectionError as e:
-        # log
+        logger.exception(f'Connection Error Resolving API.Weather.Gov: {str(e)}')
         raise e
     except HTTPError as e:
-        # log
+        logger.exception(f'HTTPError From API.Weather.Gov: {str(e)}')
         raise e
     except KeyError as e:
-        # log
+        logger.exception(f'KeyError: {str(e)}')
         raise e
     except Exception as e:
-        # log
+        logger.exception(f'get_usa_weather Exception: {str(e)}')
         raise e
 
 
@@ -49,9 +63,11 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     params = dict()
     if start_date and not end_date:
         params['start_date'] = start_date
+        logger.debug('Astronomy Start Date Assigned')
     elif start_date and end_date:
         params['start_date'] = start_date
         params['end_date'] = end_date
+        logger.debug('Astronomy Date Range Assigned')
     params['api_key'] = api_key
     params['thumbs'] = True
 
@@ -60,6 +76,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
     }
     
     async def get_request(params: dict):
+        logger.info('get_response called')
         response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
         if response.status_code == 400: raise HTTPError('Bad Request')
         elif response.status_code == 403: raise HTTPError('No API Key Passed')
@@ -71,25 +88,28 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         content = await get_request(params=params)
 
         # If empty list
-        if len(content) == 0: content = await get_request(params={'api_key':api_key, 'thumbs':True})
+        if len(content) == 0: 
+            logger.debug('len(content) == 0')
+            content = await get_request(params={'api_key':api_key, 'thumbs':True})
 
     except ConnectionError as e:
-        # print(f'Connection Error {e}')
+        logger.error(f'Connection Error Resolving API.NASA.Gov: {str(e)}')
         raise e
     except socket.gaierror as e:
-        print(f'Connection Error {e}')
+        logger.error(f'gaierror Resolving API.NASA.Gov: {str(e)}')
         raise e
     except HTTPError as e:
-        # print(e)
+        logger.error(f'HTTPError From API.NASA.Gov: {str(e)}')
         raise e
     except Exception as e:
-        # print(e)
+        logger.exception(f'get_astronomy Exception: {str(e)}')
         raise e
 
     # Make sure data is a list
     if type(content) == dict:
         data: list[dict] = list()
         data.append(content)
+        logger.debug('Added APOD dict to list')
     else:
         data = content
 
@@ -107,6 +127,6 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
             titles.append(point['title'])
             explanations.append(point['explanation'])
     except KeyError as e:
-        # log
+        logger.exception(f'KeyError: {str(e)}')
         raise e
     return (urls, dates, titles, explanations)
