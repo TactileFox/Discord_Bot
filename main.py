@@ -147,7 +147,12 @@ async def send_paginated_embed(ctx: commands.Context, pages: list[Embed], timeou
     
     # Create response
     current_page = 0
-    message = await ctx.interaction.followup.send(embed=pages[current_page])
+    try:
+        message = await ctx.interaction.followup.send(embed=pages[current_page])
+    except Exception as e:
+        logger.exception(f'Error sending paginated embed {str(e)})')
+    else:
+        logger.debug('Paginated Embed Sent')
 
     # Add "buttons" 
     await message.add_reaction('⬅️')
