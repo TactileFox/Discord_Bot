@@ -217,10 +217,10 @@ async def log_message_deletion(message: Message) -> None:
         await conn.execute(
             """UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "Id" = $2""", 
             get_date(), message.id)
-        await conn.execute(
+        if message.mentions:  await conn.execute(
             """UPDATE "UserMentions" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""", 
             get_date(), message.id)
-        await conn.execute(
+        if message.attachments: await conn.execute(
             """UPDATE "Attachments" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
             get_date(), message.id)
         logger.info(f'Deleted Message: {message.author.name} {message.content[:20]}... {message.id}')
