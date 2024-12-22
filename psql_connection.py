@@ -218,7 +218,7 @@ async def log_reaction_deletion(reaction: Reaction, user: User) -> None:
 async def log_reaction_clear(reactions: list[Reaction], message: Message) -> None:
 
     conn = await get_db_connection()
-    row = conn.fetchrow('SELECT "Id" FROM "Reactions" WHERE "MessageId" = $1 AND "Deleted" = 0 LIMIT 1', (message.id,))
+    row = await conn.fetchrow('SELECT "Id" FROM "Reactions" WHERE "MessageId" = $1 AND "Deleted" = 0 LIMIT 1', message.id)
 
     if not row:
         return
