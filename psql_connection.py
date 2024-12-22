@@ -175,6 +175,7 @@ async def log_message_edit(before: Message, after: Message) -> None:
     if not row: 
         await create_message_log(before)
     try: 
+        await conn.execute(update_message_query(), after.content, 1, 0, get_date(), None, after.id)
         # Log attachments/mentions in before that aren't in after as deleted
         for attachment in before.attachments:
             if attachment not in after.attachments:
@@ -195,7 +196,6 @@ async def log_message_edit(before: Message, after: Message) -> None:
             if mention not in before.mentions:
                 # Insert record
                 await log_user_mention(conn, mention, before.id, before.author.id)
-        await conn.execute(update_message_query(), after.content, 1, 0, get_date(), None, after.id)
     except Exception as e:
         logger.exception(f'Error Updating Messgae: {e}')
     try:
