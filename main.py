@@ -76,20 +76,19 @@ async def on_reaction_add(reaction: Reaction, user: User) -> None:
 @bot.event
 async def on_reaction_remove(reaction: Reaction, user: User) -> None:
     
-    if user == bot.user or reaction.message.author == bot.user: 
-        return 
+    if user == bot.user or reaction.message.author == bot.user: return 
     await psql.log_reaction_deletion(reaction, user)
 
 # Messages but be in the internal cache to trigger this
 @bot.event
-async def on_reaction_clear(reactions: list[Reaction], message: Message) -> None:
+async def on_reaction_clear(message: Message, reactions: list[Reaction]) -> None:
     if message.author == bot.user: return
     await psql.log_reaction_clear(reactions, message)
 
-# @bot.event
-# async def on_reaction_clear_emoji(reaction: Reaction) -> None:
-#     psql.log_reaction_emoji_clear() 
-        # same as on_reaction_clear but I need to check emoji is the same. Need to add emoji id to table and likely an emoji table. If emoji is a str, it won't have an id
+@bot.event
+async def on_reaction_clear_emoji(reaction: Reaction) -> None:
+    if reaction.message.author == bot.user: return
+    await psql.log_reaction_clear_emoji(reaction, reaction.message) 
 
 # Commands
 @bot.hybrid_command(name='get_message_count_by_user')
