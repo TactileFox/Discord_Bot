@@ -204,6 +204,7 @@ async def log_message_edit(before: Message, after: Message) -> None:
         logger.exception(f'Error Inserting Message Edit: {e}')
 
     await conn.close()
+
 async def log_message_deletion(message: Message) -> None:
 
     conn = await get_db_connection()
@@ -213,10 +214,21 @@ async def log_message_deletion(message: Message) -> None:
     if not row:
         await create_message_log(message)
     try: 
-        await conn.execute("""UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = $2, "UpdateDateUTC" = $3 WHERE "Id" = $4""", get_date(), 1, get_date(), message.id)
+        await conn.execute(
+            """UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "Id" = $2""", 
+            get_date(), message.id)
+        await conn.execute(
+            """UPDATE "UserMentions" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""", 
+            get_date(), message.id)
+        await conn.execute(
+            """UPDATE "Attachments" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
+            get_date(), message.id
+        )
         logger.info(f'Deleted Message: {message.author.name} {message.content[:20]}... {message.id}')
+
     except Exception as e:
-        print(f'Error Deleting Message {message.id}: {e}')
+        logger.exception(f'Error Deleting Message {message.id}: {e}')
+
     
     await conn.close()
 async def log_message_reaction(reaction: Reaction, user: User) -> None:
@@ -364,3 +376,41 @@ def insert_reaction_query():
     return """INSERT INTO "Reactions" ("MessageId", "UserId", "Emoji", "SelfReact", "CreateDateUTC") VALUES ($1, $2, $3, $4, $5)"""
 def delete_reaction_query():
     return 'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE "MessageId" = $2 AND "UserId" = $3 AND "Emoji" = $4 AND "Deleted" = 0'
+def snipe_query():
+    return """
+    SELECT
+        CASE
+            WHEN m."Deleted" = 0 THEN meh."BeforeContent"
+            ELSE NULL
+        END AS "BeforeText",
+        COALESCE(meh."AfterContent", m."Content") AS "CurrentText",
+        u."Username",
+        CASE 
+            WHEN m."Deleted" = 1 THEN 'Deleted'
+            WHEN m."Edited" = 1 THEN 'Edited'
+        END AS "Action",
+        a."URL"
+
+    FROM "Message" m
+    INNER JOIN "User" u
+        ON U."Id" = m."UserId"
+    LEFT JOIN LATERAL (
+        SELECT meh."BeforeContent",
+            meh."AfterContent"
+        FROM "MessageEditHistory" meh
+        WHERE meh."MessageId" = m."Id"
+        ORDER BY meh."CreateDateUTC" DESC
+        LIMIT 1
+    ) meh ON 1=1
+    LEFT JOIN LATERAL (
+        SELECT a."URL"
+        FROM "Attachments" a
+        WHERE a."Deleted" = 1
+            AND a."MessageId" = m."Id"
+        ORDER BY a."DeleteDateUTC" DESC
+        LIMIT 1
+    ) a ON 1=1
+    WHERE m."UpdateDateUTC" IS NOT NULL
+    ORDER BY m."UpdateDateUTC" DESC
+    LIMIT 1;
+"""
