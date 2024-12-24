@@ -18,30 +18,36 @@ stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
 
+
 async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, str, list]:
 
     # Get second url and city/state
     try:
         response = r.get(url=f'https://api.weather.gov/points/{lat},{lon}')
-        if response.status_code == 400: raise HTTPError('Bad Request')
-        elif response.status_code == 404: raise HTTPError(f'Invalid Points: {lat}, {lon}')
-        elif response.status_code == 500: raise HTTPError('Unexpected Error')
-        
-        content = response.json()
-    
-        city = content['properties']['relativeLocation']['properties']['city']
-        state = content['properties']['relativeLocation']['properties']['state']
+        if response.status_code == 400:
+            raise HTTPError('Bad Request')
+        elif response.status_code == 404:
+            raise HTTPError(f'Invalid Points: {lat}, {lon}')
+        elif response.status_code == 500:
+            raise HTTPError('Unexpected Error')
+        else:
+            content = response.json()
+            location = content['properties']['relativeLocation']['properties']
+            city = location['city']
+            state = location['state']
 
         # Forecast Info
-        response = r.get(url=f"{content['properties']['forecast']}?units={unit_type}")
-        if response.status_code == 400: raise HTTPError('Bad Request')
-        elif response.status_code == 404: raise HTTPError('Invalid Grid')
-        elif response.status_code == 500: raise HTTPError('Unexpected Error')
-        
-        content = response.json()
-
-        # Return a list of dictionaries containing only the forecast info
-        return (city, state, content['properties']['periods'])
+        forecast_link = content['properties']['forecast']
+        response = r.get(url=f"{forecast_link}?units={unit_type}")
+        if response.status_code == 400:
+            raise HTTPError('Bad Request')
+        elif response.status_code == 404:
+            raise HTTPError('Invalid Grid')
+        elif response.status_code == 500:
+            raise HTTPError('Unexpected Error')
+        else:
+            content = response.json()
+            return (city, state, content['properties']['periods'])
     except ConnectionError as e:
         logger.exception(f'Connection Error Resolving API.Weather.Gov: {str(e)}')
         raise e
