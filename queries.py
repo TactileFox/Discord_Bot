@@ -82,7 +82,7 @@ def update_message(deletion: bool = False) -> str:
             'UPDATE "Message" SET "Content" = $1, "UpdateDateUTC" = $2, '
             '"Edited" = 1 WHERE "Id" = $3'
         )
-    
+
 
 def insert_message_edit() -> str:
     return (
@@ -98,13 +98,33 @@ def insert_reaction() -> str:
     )
 
 
-def update_reaction(
-        single: bool = True, emoji: bool = False,
-        all: bool = False
-) -> str:
-    query = 'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE '
+def update_reaction(emoji: bool = False, all: bool = False) -> str:
+    query: str = (
+        'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 '
+        'WHERE '
+    )
     if all:
-        query.append("")
+        query += '"MessageId" = $2'
+    elif emoji:
+        query += '"MessageId" = $2 AND "Emoji" = $3'
+    else:
+        query += '"MessageId" = $2 AND "Emoji" = $3 AND "UserId" = $4'
+    return query
+
+
+def insert_user_mentions() -> str:
+    return (
+        'INSERT INTO "UserMentions" ("Id", "MessageId", "AuthorId", '
+        '"RecipientId", "CreateDateUTC") VALUES ($1, $2, $3, $4, $5)'
+    )
+
+
+def update_user_mentions() -> str:
+    return (
+        'UPDATE "UserMentions" SET "UpdateDateUTC" = $1, '
+        '"DeleteDateUTC" = $1, "Deleted" = 1 WHERE "MessageId" = $2 AND '
+        '"RecipientId" = $3'
+    )
 
 
 def get_user() -> str:
@@ -125,3 +145,43 @@ def update_user() -> str:
     )
 
 
+def snipe_query() -> str:
+    return """
+    SELECT
+        CASE
+            WHEN m."Deleted" = 0 THEN meh."BeforeContent"
+            ELSE NULL
+        END AS "BeforeText",
+        COALESCE(meh."AfterContent", m."Content") AS "CurrentText",
+        u."Username",
+        CASE
+            WHEN m."Deleted" = 1 THEN 'Deleted'
+            WHEN m."Edited" = 1 THEN 'Edited'
+        END AS "Action",
+        a."URL"
+
+    FROM "Message" m
+    INNER JOIN "User" u
+        ON U."Id" = m."UserId"
+    LEFT JOIN LATERAL (
+        SELECT meh."BeforeContent",
+            meh."AfterContent"
+        FROM "MessageEditHistory" meh
+        WHERE meh."MessageId" = m."Id"
+        ORDER BY meh."CreateDateUTC" DESC
+        LIMIT 1
+    ) meh ON 1=1
+    LEFT JOIN LATERAL (
+        SELECT a."URL"
+        FROM "Attachments" a
+        WHERE a."Deleted" = 1
+            AND a."MessageId" = m."Id"
+            AND a."DeleteDateUTC" > m."UpdateDateUTC"
+        ORDER BY a."DeleteDateUTC" DESC
+        LIMIT 1
+    ) a ON 1=1
+    WHERE m."UpdateDateUTC" IS NOT NULL
+        AND m."ChannelId" = $1
+    ORDER BY m."UpdateDateUTC" DESC
+    LIMIT 1;
+"""
