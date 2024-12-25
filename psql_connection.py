@@ -21,10 +21,10 @@ stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
 
+
 async def create_message_log(message: Message) -> None:
 
     conn = await get_db_connection()
-
     await log_user(conn, message.author)
     await log_guild(conn, message.guild)
     await log_channel(conn, message)
@@ -33,11 +33,15 @@ async def create_message_log(message: Message) -> None:
     for attachment in message.attachments:
         await log_attachment(conn, attachment, message_id=message.id)
 
-    for user in message.mentions: 
+    for user in message.mentions:
         await log_user(conn, user)
-        await log_user_mention(conn, user, message_id=message.id, message_sender_id=message.author.id)
+        await log_user_mention(
+            conn, user, message_id=message.id,
+            message_sender_id=message.author.id
+        )
     logger.info(f'Message Logged: {message.id}')
     await conn.close()
+
 
 # Check, Update, Insert
 async def log_user(conn: Connection, user: User) -> None:
@@ -46,16 +50,22 @@ async def log_user(conn: Connection, user: User) -> None:
 
     if not row:
         try:
-            await conn.execute(insert_user_query(), user.id, user.name, get_date())
+            await conn.execute(
+                insert_user_query(), user.id, user.name, get_date()
+            )
             logger.info(f'User inserted: {user.name}')
         except Exception as e:
             logger.exception(f'Error creating user {user.name}: {e}')
     elif row['Username'] != user.name:
         try:
-            await conn.execute(update_user_query(), user.name, datetime.now(timezone.utc), user.id)
+            await conn.execute(
+                update_user_query(), user.name,
+                datetime.now(timezone.utc), user.id
+            )
             logger.info(f'User Updated: {user.name}')
         except Exception as e:
             logger.exception(f'Error updating user {user.name}: {e}')
+
 
 async def log_guild(conn: Connection, guild: Guild) -> None:
 
@@ -63,91 +73,139 @@ async def log_guild(conn: Connection, guild: Guild) -> None:
 
     if not row:
         try:
-            await conn.execute(insert_quild_query(), guild.id, guild.name, guild.description, get_date())
+            await conn.execute(
+                insert_quild_query(), guild.id, guild.name,
+                guild.description, get_date()
+            )
             logger.info(f'Guild Inserted: {guild.name}')
         except Exception as e:
             logger.exception(f'Error inserting guild {guild.name}: {e}')
     elif row['Name'] != guild.name or row['Description'] != guild.description:
         try:
-            await conn.execute(update_guild_query(), guild.name, guild.description, get_date(), guild.id)
+            await conn.execute(
+                update_guild_query(), guild.name, guild.description,
+                get_date(), guild.id
+            )
             logger.info(f'Guild Updated: {guild.name}')
         except Exception as e:
             logger.exception(f'Error updating guild {guild.name}: {e}')
 
+
 async def log_channel(conn: Connection, message: Message) -> None:
 
     channel = message.channel
-
-    row = await conn.fetchrow(get_channel_query(), channel.id)
-
-    # Update channel.name property
     channel_name = create_channel_name(message)
-
+    row = await conn.fetchrow(get_channel_query(), channel.id)
     if not row:
         try:
-            await conn.execute(insert_channel_query(), channel.id, channel.type.value, channel_name, channel.guild.id, channel.category.name, get_date())
+            await conn.execute(
+                insert_channel_query(), channel.id, channel.type.value,
+                channel_name, channel.guild.id,
+                channel.category.name, get_date()
+            )
             logger.info(f'Channel Inserted: {channel.name} {channel.id}')
         except Exception as e:
-            logger.exception(f'Error inserting channel {channel_name} {channel.id}: {e}')
-    elif row['Name'] != channel.name or row['ChannelTypeId'] != channel.type.value:
+            logger.exception(
+                f'Error inserting channel {channel_name} {channel.id}: {e}'
+            )
+    elif row['Name'] != channel.name:
         try:
-            await conn.execute(update_channel_query(), channel.name, channel.type.value, channel.id)
+            await conn.execute(
+                update_channel_query(), channel.name,
+                channel.type.value, channel.id
+            )
             logger.info(f'Channel Updated: {channel.name} {channel.id}')
         except Exception as e:
-            logger.exception(f'Error updating channel {channel.name} {channel.id}: {e}')
+            logger.exception(
+                f'Error updating channel {channel.name} {channel.id}: {e}'
+            )
+
 
 async def log_message(conn: Connection, message: Message) -> None:
 
     row = await conn.fetchrow(get_message_query(), message.id)
-
     if not row:
         try:
-            await conn.execute(insert_message_query(), message.id, message.author.id, message.guild.id, message.content, message.channel.id, get_date())
-            logger.info(f'Message Inserted: {message.id} {message.content[:20]}...')
+            await conn.execute(
+                insert_message_query(), message.id, message.author.id,
+                message.guild.id, message.content,
+                message.channel.id, get_date()
+            )
+            logger.info(
+                f'Message Inserted: {message.id} {message.content[:20]}...'
+            )
         except Exception as e:
-            logger.exception(f'Error inserting message {message.content[:20]}...: {e}')
+            logger.exception(
+                f'Error inserting message {message.content[:20]}...: {e}'
+            )
     else:
-        logger.error(f'Message Already Exists: {message.author.name} {message.id} {message.content[:20]}')
+        logger.error(
+            f'Message Already Exists: {message.author.name} {message.id} '
+            f'{message.content[:20]}'
+        )
+
+
 async def log_attachment(conn: Connection, attachment: Attachment, message_id):
 
     row = await conn.fetchrow(get_attachment_query(), attachment.id)
-    
     if not row:
         try:
-            await conn.execute(insert_attachment_query(), attachment.id, attachment.filename, attachment.content_type, attachment.url, message_id, get_date())
+            await conn.execute(
+                insert_attachment_query(), attachment.id,
+                attachment.filename, attachment.content_type,
+                attachment.url, message_id, get_date()
+            )
             logger.info(f'Attachment Inserted: {attachment.filename[:20]}')
         except Exception as e:
-            logger.exception(f'Error inserting attachment {attachment.filename[:20]}: {e}')
-    elif row['Filename'] != attachment.filename or row['ContentType'] != attachment.content_type or row['URL'] != attachment.url or row['MessageId'] != message_id:
+            logger.exception(
+                f'Error inserting attachment {attachment.filename[:20]}: {e}'
+            )
+    elif (row['Filename'] != attachment.filename
+          or row['ContentType'] != attachment.content_type
+          or row['URL'] != attachment.url
+          or row['MessageId'] != message_id):
         logger.error('Attachment Was Edited and Not Updated')
         return NotImplementedError('Attachment already exists')
-    
 
-async def log_user_mention(conn: Connection, user: User, message_id, message_sender_id) -> None:
+
+async def log_user_mention(
+        conn: Connection, user: User,
+        message_id, message_sender_id
+) -> None:
 
     # TODO Don't log bot mentions
     # if message_sender_id == bot.id: return
 
-    row = await conn.fetchrow(get_user_mentions_query(), message_id, message_sender_id)
+    row = await conn.fetchrow(
+        get_user_mentions_query(), message_id, message_sender_id
+    )
 
-    if not row: 
+    if not row:
         try:
-            await conn.execute(insert_user_mentions_query(), message_id, message_sender_id, user.id, get_date())
+            await conn.execute(
+                insert_user_mentions_query(), message_id,
+                message_sender_id, user.id, get_date()
+            )
             logger.info(f'User Mention Inserted: {user.name} {message_id}')
         except Exception as e:
             logger.exception(f'Error inserting mention {user.name}: {e}')
 
+
 async def get_message_counts(guild: Guild) -> File:
-    
+
     conn = await get_db_connection()
     data = await conn.fetch('SELECT COUNT("M"."Id"), "U"."Username" FROM "Message" "M" INNER JOIN "User" "U" ON "U"."Id" = "M"."UserId" WHERE "M"."GuildId" = $1 GROUP BY "U"."Username" ORDER BY COUNT("M"."Id") DESC LIMIT 10', guild.id)
     if not data:
         logger.error(f'No Messages to Graph: {guild.name} {guild.id}')
         raise ValueError
-    
+
     # Create matplotlib graph
     fig, ax = plt.subplots()
-    ax.bar([point['Username'] for point in data], [point['count'] for point in data], color='blue')
+    ax.bar(
+        [point['Username'] for point in data],
+        [point['count'] for point in data],
+        color='blue'
+    )
     ax.set_xlabel('User')
     ax.set_ylabel('Message Count')
     ax.set_title('Message Count by User')
@@ -157,7 +215,7 @@ async def get_message_counts(guild: Guild) -> File:
     plt.savefig(buf, format='png')
     buf.seek(0)
 
-    # Create and return file 
+    # Create and return file
     file = File(buf, 'message_count_graph.png')
     plt.close()
     buf.close()
@@ -166,22 +224,32 @@ async def get_message_counts(guild: Guild) -> File:
     logger.info('Graph Returned')
     return file
 
+
 async def log_message_edit(before: Message, after: Message) -> None:
-    
+
     conn = await get_db_connection()
-
-    row = await conn.fetchrow('SELECT "Id" FROM "Message" WHERE "Id" = $1', before.id) 
-
-    if not row: 
+    row = await conn.fetchrow(
+        'SELECT "Id" FROM "Message" WHERE "Id" = $1', before.id
+    )
+    if not row:
         await create_message_log(before)
-    try: 
-        await conn.execute(update_message_query(), after.content, 1, 0, get_date(), None, after.id)
+    try:
+        await conn.execute(
+            update_message_query(), after.content, 1, 0,
+            get_date(), None, after.id
+        )
         # Log attachments/mentions in before that aren't in after as deleted
         for attachment in before.attachments:
             if attachment not in after.attachments:
                 # Delete record
-                await conn.execute(delete_attachment_query(), get_date(), get_date(), attachment.url, before.id) 
-                logger.info(f'Deleted Attachment: {attachment.filename[:20]} {attachment.id}')
+                await conn.execute(
+                    delete_attachment_query(), get_date(),
+                    get_date(), attachment.url, before.id
+                )
+                logger.info(
+                    f'Deleted Attachment: {attachment.filename[:20]} '
+                    f'{attachment.id}'
+                )
         # Log new attachments
         for attachment in after.attachments:
             if attachment not in before.attachments:
@@ -190,74 +258,116 @@ async def log_message_edit(before: Message, after: Message) -> None:
         for mention in before.mentions:
             if mention not in after.mentions:
                 # Delete record
-                await conn.execute(delete_user_mention_query(), get_date(), get_date(), before.id, mention.id)
-                logger.info(f'Deleted User Mention: {mention.name} {mention.id}')
+                await conn.execute(
+                    delete_user_mention_query(), get_date(),
+                    get_date(), before.id, mention.id
+                )
+                logger.info(
+                    f'Deleted User Mention: {mention.name} {mention.id}'
+                )
         for mention in after.mentions:
             if mention not in before.mentions:
                 # Insert record
-                await log_user_mention(conn, mention, before.id, before.author.id)
+                await log_user_mention(
+                    conn, mention, before.id, before.author.id
+                )
     except Exception as e:
         logger.exception(f'Error Updating Messgae: {e}')
     try:
-        await conn.execute(insert_message_edit_query(), before.id, before.content, after.content, get_date())
+        await conn.execute(
+            insert_message_edit_query(), before.id,
+            before.content, after.content, get_date()
+        )
     except Exception as e:
         logger.exception(f'Error Inserting Message Edit: {e}')
+    finally:
+        await conn.close()
 
-    await conn.close()
 
 async def log_message_deletion(message: Message) -> None:
 
     conn = await get_db_connection()
-
-    row = await conn.fetchrow('SELECT "Id" FROM "Message" WHERE "Id" = $1', message.id)
-
+    row = await conn.fetchrow(
+        'SELECT "Id" FROM "Message" WHERE "Id" = $1', message.id
+    )
     if not row:
         await create_message_log(message)
-    try: 
+    try:
         await conn.execute(
-            """UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "Id" = $2""", 
-            get_date(), message.id)
-        if message.mentions:  await conn.execute(
-            """UPDATE "UserMentions" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""", 
-            get_date(), message.id)
-        if message.attachments: await conn.execute(
-            """UPDATE "Attachments" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
-            get_date(), message.id)
-        logger.info(f'Deleted Message: {message.author.name} {message.content[:20]}... {message.id}')
+            """UPDATE "Message" SET "DeleteDateUTC" = $1, "Deleted" = 1,"""
+            """"UpdateDateUTC" = $1 WHERE "Id" = $2""",
+            get_date(), message.id
+        )
+        if message.mentions: 
+            await conn.execute(
+                """UPDATE "UserMentions" SET "DeleteDateUTC" = $1, "Deleted" = 1,"""
+                """"UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
+                get_date(), message.id
+            )
+        if message.attachments: 
+            await conn.execute(
+                """UPDATE "Attachments" SET "DeleteDateUTC" = $1, "Deleted" = 1, "UpdateDateUTC" = $1 WHERE "MessageId" = $2""",
+                get_date(), message.id
+            )
+        logger.info(
+            f'Deleted Message: {message.author.name} {message.content[:20]}...'
+            f' {message.id}')
 
     except Exception as e:
         logger.exception(f'Error Deleting Message {message.id}: {e}')
+    finally:
+        await conn.close()
 
-    
-    await conn.close()
+
 async def log_message_reaction(reaction: Reaction, user: User) -> None:
 
     conn = await get_db_connection()
-
     await log_user(conn, user)
-
-    self_react = int(reaction.message.author.id == user.id) 
-
+    self_react = int(reaction.message.author.id == user.id)
     try:
-        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji
-        await conn.execute(insert_reaction_query(), reaction.message.id, user.id, emoji_name, self_react, get_date())
+        if reaction.emoji is str:
+            emoji_name = reaction.emoji.name
+        else:
+            emoji_name = reaction.emoji
+        await conn.execute(
+            insert_reaction_query(), reaction.message.id,
+            user.id, emoji_name, self_react, get_date()
+        )
         logger.info(f'Inserted Reaction: {emoji_name} {reaction.message.id}')
     except Exception as e:
-        logger.exception(f'Error Inserting Reaction {emoji_name} {reaction.message.id}: {e}')
+        logger.exception(
+            f'Error Inserting Reaction {emoji_name} '
+            f'{reaction.message.id}: {e}'
+        )
+    finally:
+        await conn.close()
 
-    await conn.close()
+
 async def log_reaction_deletion(reaction: Reaction, user: User) -> None:
 
     conn = await get_db_connection()
 
     try:
-        emoji_name = reaction.emoji.name if type(reaction.emoji) != str else reaction.emoji
-        await conn.execute(delete_reaction_query(), get_date(), reaction.message.id, user.id, emoji_name)
-        logger.info(f'Deleted Reaction: {emoji_name} {reaction.message.id} {user.name}')
+        if reaction.emoji is not str:
+            emoji_name = reaction.emoji.name
+        else:
+            emoji_name = reaction.emoji
+        await conn.execute(
+            delete_reaction_query(), get_date(),
+            reaction.message.id, user.id, emoji_name
+        )
+        logger.info(
+            f'Deleted Reaction: {emoji_name} {reaction.message.id} {user.name}'
+        )
     except Exception as e:
-        logger.exception(f'Error Deleting Reaction {emoji_name} {reaction.message.id} {user.name}: {e}')
+        logger.exception(
+            f'Error Deleting Reaction {emoji_name} {reaction.message.id} '
+            f'{user.name}: {e}'
+        )
+    finally:
+        await conn.close()
 
-    await conn.close()
+
 async def log_reaction_clear(message: Message) -> None:
 
     conn = await get_db_connection()
