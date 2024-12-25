@@ -19,7 +19,7 @@ def update_attachment(deletion: bool = False) -> str:
     else:
         return (
             'UPDATE "Attachments" SET "URL" = $1, "UpdateDateUTC" = $2 '
-            'WHERE "Id" = $1'
+            'WHERE "Id" = $3'
         )
 
 
