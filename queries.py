@@ -102,9 +102,9 @@ def update_reaction(
         single: bool = True, emoji: bool = False,
         all: bool = False
 ) -> str:
-    return (
-        'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE "I'
-    )
+    query = 'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 WHERE '
+    if all:
+        query.append("")
 
 
 def get_user() -> str:
