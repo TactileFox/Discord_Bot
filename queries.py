@@ -93,12 +93,12 @@ def insert_message_edit() -> str:
 
 def insert_reaction() -> str:
     return (
-        'INSERT INTO "Reactions" ("Id", "MessageId", "UserId", "Emoji", '
-        '"SelfReact", "CreateDateUTC") VALUES ($1, $2, $3, $4, $5, $6)'
+        'INSERT INTO "Reactions" ("MessageId", "UserId", "Emoji", '
+        '"SelfReact", "CreateDateUTC") VALUES ($1, $2, $3, $4, $5)'
     )
 
 
-def update_reaction(emoji: bool = False, all: bool = False) -> str:
+def delete_reaction(emoji: bool = False, all: bool = False) -> str:
     query: str = (
         'UPDATE "Reactions" SET "DeleteDateUTC" = $1, "Deleted" = 1 '
         'WHERE '
@@ -112,14 +112,21 @@ def update_reaction(emoji: bool = False, all: bool = False) -> str:
     return query
 
 
-def insert_user_mentions() -> str:
+def get_user_mention() -> str:
     return (
-        'INSERT INTO "UserMentions" ("Id", "MessageId", "AuthorId", '
-        '"RecipientId", "CreateDateUTC") VALUES ($1, $2, $3, $4, $5)'
+        'SELECT * FROM "UserMentions" WHERE "MessageId" = $1 '
+        'AND "RecipientId" = $2'
     )
 
 
-def update_user_mentions() -> str:
+def insert_user_mention() -> str:
+    return (
+        'INSERT INTO "UserMentions" ("MessageId", "AuthorId", '
+        '"RecipientId", "CreateDateUTC") VALUES ($1, $2, $3, $4)'
+    )
+
+
+def delete_user_mention() -> str:
     return (
         'UPDATE "UserMentions" SET "UpdateDateUTC" = $1, '
         '"DeleteDateUTC" = $1, "Deleted" = 1 WHERE "MessageId" = $2 AND '
@@ -145,7 +152,7 @@ def update_user() -> str:
     )
 
 
-def snipe_query() -> str:
+def snipe() -> str:
     return """
     SELECT
         CASE
@@ -183,5 +190,17 @@ def snipe_query() -> str:
     WHERE m."UpdateDateUTC" IS NOT NULL
         AND m."ChannelId" = $1
     ORDER BY m."UpdateDateUTC" DESC
-    LIMIT 1;
-"""
+    LIMIT 1;"""
+
+
+def message_counts() -> str:
+    return """
+    SELECT COUNT("M"."Id"),
+    "U"."Username"
+    FROM "Message" "M"
+    INNER JOIN "User" "U"
+    ON "U"."Id" = "M"."UserId"
+    WHERE "M"."GuildId" = $1
+    GROUP BY "U"."Username"
+      ORDER BY COUNT("M"."Id") DESC
+      LIMIT 10"""
