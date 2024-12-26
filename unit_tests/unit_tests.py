@@ -138,7 +138,6 @@ class TestAPI(unittest.IsolatedAsyncioTestCase):
             mock_response_range_200 = MagicMock()
             mock_response_range_200.status_code = 200
             mock_response_range_200.json.return_value = nasa_json
-
             mocker.return_value = mock_response_range_200
 
             urls: list[str] = list()

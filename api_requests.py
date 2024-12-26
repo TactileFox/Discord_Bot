@@ -128,7 +128,7 @@ async def get_astronomy_picture(
         raise e
 
     # Make sure data is a list
-    if content is dict:
+    if isinstance(content, dict):
         data: list[dict] = list()
         data.append(content)
         logger.debug('Added APOD dict to list')
@@ -155,3 +155,4 @@ async def get_astronomy_picture(
         logger.exception(f'KeyError: {str(e)}')
         raise e
     return (urls, dates, titles, explanations)
+    
