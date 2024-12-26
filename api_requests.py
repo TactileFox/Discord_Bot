@@ -19,7 +19,9 @@ stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
 
 
-async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, str, list]:
+async def get_usa_weather(
+        lat: float, lon: float, unit_type: str
+) -> tuple[str, str, list]:
 
     # Get second url and city/state
     try:
@@ -49,7 +51,9 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
             content = response.json()
             return (city, state, content['properties']['periods'])
     except ConnectionError as e:
-        logger.exception(f'Connection Error Resolving API.Weather.Gov: {str(e)}')
+        logger.exception(
+            f'Connection Error Resolving API.Weather.Gov: {str(e)}'
+        )
         raise e
     except HTTPError as e:
         logger.exception(f'HTTPError From API.Weather.Gov: {str(e)}')
@@ -62,7 +66,9 @@ async def get_usa_weather(lat: float, lon: float, unit_type: str) -> tuple[str, 
         raise e
 
 
-async def get_astronomy_picture(start_date: str = None, end_date: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
+async def get_astronomy_picture(
+        start_date: str = None, end_date: str = None
+) -> tuple[list[str], list[str], list[str], list[str]]:
 
     api_key = os.getenv('NASA_API_KEY')
 
@@ -76,27 +82,37 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         logger.debug('Astronomy Date Range Assigned')
     params['api_key'] = api_key
     params['thumbs'] = True
-
+    user_agent = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit'
+                  '/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+        'User-Agent': user_agent
     }
-    
+
     async def get_request(params: dict):
         logger.info('get_response called')
-        response = r.get(url=f'https://api.nasa.gov/planetary/apod', params=params, headers=headers)
-        if response.status_code == 400: raise HTTPError('Bad Request')
-        elif response.status_code == 403: raise HTTPError('No API Key Passed')
-        elif response.status_code == 500: raise HTTPError('API Error')
-        else: response.raise_for_status()
+        response = r.get(
+            url='https://api.nasa.gov/planetary/apod',
+            params=params, headers=headers
+        )
+        if response.status_code == 400:
+            raise HTTPError('Bad Request')
+        elif response.status_code == 403:
+            raise HTTPError('No API Key Passed')
+        elif response.status_code == 500:
+            raise HTTPError('API Error')
+        else:
+            response.raise_for_status()
         return response.json()
 
     try:
         content = await get_request(params=params)
 
         # If empty list
-        if len(content) == 0: 
+        if len(content) == 0:
             logger.debug('len(content) == 0')
-            content = await get_request(params={'api_key':api_key, 'thumbs':True})
+            content = await get_request(
+                params={'api_key': api_key, 'thumbs': True}
+            )
 
     except ConnectionError as e:
         logger.error(f'Connection Error Resolving API.NASA.Gov: {str(e)}')
@@ -112,7 +128,7 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
         raise e
 
     # Make sure data is a list
-    if type(content) == dict:
+    if content is dict:
         data: list[dict] = list()
         data.append(content)
         logger.debug('Added APOD dict to list')
@@ -126,9 +142,12 @@ async def get_astronomy_picture(start_date: str = None, end_date: str = None) ->
 
     try:
         for point in data:
-            if point['media_type'] == 'image': urls.append(point['hdurl'])
-            elif point['media_type'] == 'video': urls.append(point['thumbnail_url'])
-            else: continue
+            if point['media_type'] == 'image':
+                urls.append(point['hdurl'])
+            elif point['media_type'] == 'video':
+                urls.append(point['thumbnail_url'])
+            else:
+                continue
             dates.append(point['date'])
             titles.append(point['title'])
             explanations.append(point['explanation'])
