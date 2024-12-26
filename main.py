@@ -167,13 +167,17 @@ async def on_reaction_clear_emoji(reaction: Reaction) -> None:
 
 # Commands
 @bot.hybrid_command(name='get_message_count_by_user')
-async def message_count_by_user(ctx: commands.Context):
+async def message_count_by_user(ctx: commands.Context) -> None:
 
+    try:
+        file = await psql.get_message_counts(ctx.guild)
+    except ValueError:
+        await ctx.send(content='No Messages Have Been Sent')
+        return
     await ctx.send(
         content='Here is your graph:',
-        file=await psql.get_message_counts(ctx.guild)
-        )
-
+        file=file
+    )
     logger.info(
         f'Message Count By User Graph Sent. Author: {ctx.author},'
         f'Channel: {ctx.channel.name}, Guild: {ctx.guild.name}'
@@ -352,7 +356,8 @@ async def get_weather(
                 f"**Wind Speed**: {none_to_na(data['windSpeed'])}\n"
                 f"**Wind Direction**: {none_to_na(data['windDirection'])}\n"
                 f"**Short Forecast**: {none_to_na(data['shortForecast'])}\n"
-                f"**Detailed Forecast**: {none_to_na(data['detailedForecast'])}"
+                f"**Detailed Forecast**:"
+                f"{none_to_na(data['detailedForecast'])}"
             ),
             color=colours[data['number'] - 1]
         )
@@ -388,7 +393,10 @@ async def get_astronomy_by_date(
                 start_date = start_date_obj.strftime("%Y-%m-%d")
 
             end_date_provided = end_day and end_month and end_year
-            if not end_date_provided and (start_date_obj + timedelta(days=90)) < current_date:
+            if (
+                end_date_provided is None
+                and (start_date_obj + timedelta(days=90)) < current_date
+            ):
                 end_date_obj = (start_date_obj + timedelta(days=90))
                 end_date = end_date_obj.strftime("%Y-%m-%d")
             else:
@@ -425,7 +433,9 @@ async def get_astronomy_by_date(
     await ctx.interaction.response.defer()
 
     async def send_error_message(text: str):
-        await ctx.interaction.followup.send(f'**Unexpected Exception:** {text}')
+        await ctx.interaction.followup.send(
+            f'**Unexpected Exception:** {text}'
+        )
         logger.info(f'Astronomy Exception Sent: {text}')
 
     try:
