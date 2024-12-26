@@ -376,10 +376,10 @@ def get_date():
 
 
 def get_emoji_name(reaction: Reaction) -> str:
-    if reaction.emoji is not str:
-        emoji_name = reaction.emoji.name
-    else:
+    if isinstance(reaction.emoji, str):
         emoji_name = reaction.emoji
+    else:
+        emoji_name = reaction.emoji.name
     return emoji_name
 
 

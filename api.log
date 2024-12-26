@@ -1,0 +1,46 @@
+2024-12-26 12:27:29,304:INFO:get_response called
+2024-12-26 12:27:29,304:ERROR:HTTPError From API.NASA.Gov: Bad Request
+2024-12-26 12:27:29,314:INFO:get_response called
+2024-12-26 12:27:29,314:ERROR:HTTPError From API.NASA.Gov: No API Key Passed
+2024-12-26 12:27:29,324:INFO:get_response called
+2024-12-26 12:27:29,325:ERROR:HTTPError From API.NASA.Gov: API Error
+2024-12-26 12:27:29,334:INFO:get_response called
+2024-12-26 12:27:29,346:INFO:get_response called
+2024-12-26 12:27:29,346:DEBUG:len(content) == 0
+2024-12-26 12:27:29,346:INFO:get_response called
+2024-12-26 12:27:29,356:INFO:get_response called
+2024-12-26 12:27:29,357:DEBUG:len(content) == 0
+2024-12-26 12:27:29,357:INFO:get_response called
+2024-12-26 12:27:29,357:ERROR:HTTPError From API.NASA.Gov: Bad Request
+2024-12-26 12:27:29,369:DEBUG:Astronomy Date Range Assigned
+2024-12-26 12:27:29,369:INFO:get_response called
+2024-12-26 12:27:29,391:ERROR:HTTPError From API.Weather.Gov: Bad Request
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 45, in get_usa_weather
+    raise HTTPError('Bad Request')
+requests.exceptions.HTTPError: Bad Request
+2024-12-26 12:27:29,403:ERROR:HTTPError From API.Weather.Gov: Invalid Grid
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 47, in get_usa_weather
+    raise HTTPError('Invalid Grid')
+requests.exceptions.HTTPError: Invalid Grid
+2024-12-26 12:27:29,416:ERROR:HTTPError From API.Weather.Gov: Unexpected Error
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 49, in get_usa_weather
+    raise HTTPError('Unexpected Error')
+requests.exceptions.HTTPError: Unexpected Error
+2024-12-26 12:27:29,426:ERROR:HTTPError From API.Weather.Gov: Bad Request
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 30, in get_usa_weather
+    raise HTTPError('Bad Request')
+requests.exceptions.HTTPError: Bad Request
+2024-12-26 12:27:29,437:ERROR:HTTPError From API.Weather.Gov: Invalid Points: 46.0, -76.0
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 32, in get_usa_weather
+    raise HTTPError(f'Invalid Points: {lat}, {lon}')
+requests.exceptions.HTTPError: Invalid Points: 46.0, -76.0
+2024-12-26 12:27:29,448:ERROR:HTTPError From API.Weather.Gov: Unexpected Error
+Traceback (most recent call last):
+  File "C:\Users\dmp20\Python\discord_Bot_Test\venv\api_requests.py", line 34, in get_usa_weather
+    raise HTTPError('Unexpected Error')
+requests.exceptions.HTTPError: Unexpected Error
