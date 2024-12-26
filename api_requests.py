@@ -155,4 +155,3 @@ async def get_astronomy_picture(
         logger.exception(f'KeyError: {str(e)}')
         raise e
     return (urls, dates, titles, explanations)
-    
