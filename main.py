@@ -356,7 +356,7 @@ async def get_weather(
                 f"**Wind Speed**: {none_to_na(data['windSpeed'])}\n"
                 f"**Wind Direction**: {none_to_na(data['windDirection'])}\n"
                 f"**Short Forecast**: {none_to_na(data['shortForecast'])}\n"
-                f"**Detailed Forecast**:"
+                f"**Detailed Forecast**: "
                 f"{none_to_na(data['detailedForecast'])}"
             ),
             color=colours[data['number'] - 1]
@@ -412,7 +412,7 @@ async def get_astronomy_by_date(
         try:
             end_date_obj = dt(end_year, end_month, end_day)
             if end_date_obj > current_date:
-                end_date = end_date = current_date.strftime("%Y-%m-%d")
+                end_date = current_date.strftime("%Y-%m-%d")
             elif end_date_obj.date() > start_date_obj.date():
                 if (start_date_obj - end_date_obj).days <= 365:
                     end_date = end_date_obj.strftime("%Y-%m-%d")
