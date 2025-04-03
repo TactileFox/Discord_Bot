@@ -204,3 +204,11 @@ def message_counts() -> str:
     GROUP BY "U"."Username"
       ORDER BY COUNT("M"."Id") DESC
       LIMIT 10"""
+
+
+def get_tables() -> str:
+    return """
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+    """
