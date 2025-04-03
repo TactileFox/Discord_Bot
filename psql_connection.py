@@ -49,7 +49,13 @@ async def verify_DB_exists() -> bool:
                 f'Table is missing: {missing_table}; '
                 'attempting to create table'
             )
-        create_database()
+        try:
+            create_database()
+        except Exception as e:
+            logger.critical(
+                f'Unable to create database: {e}'
+            )
+            return False
         tables = await conn.fetch(query.get_tables())
         actual_tables = [table['table_name'] for table in tables]
         missing_tables = [
