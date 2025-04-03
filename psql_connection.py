@@ -8,6 +8,7 @@ from typing import Final
 from discord import Message, Guild, User, Attachment, File, Reaction
 from datetime import datetime, timezone
 import queries as query
+from create_database import create_database
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -21,6 +22,53 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
+
+
+async def verify_DB_exists() -> bool:
+    conn = await get_db_connection()
+    tables = await conn.fetch(query.get_tables())
+    expected_tables = [
+        'Attachments',
+        'Channel',
+        'ChannelType',
+        'Guild',
+        'Message',
+        'MessageEditHistory',
+        'Reactions',
+        'User',
+        'UserMentions'
+    ]
+    actual_tables = [table['table_name'] for table in tables]
+    missing_tables = [
+        table for table in expected_tables if table not in actual_tables
+    ]
+
+    if missing_tables:
+        for missing_table in missing_tables:
+            logger.warning(
+                f'Table is missing: {missing_table}; '
+                'attempting to create table'
+            )
+        try:
+            create_database()
+        except Exception as e:
+            logger.critical(
+                f'Unable to create database: {e}'
+            )
+            return False
+        tables = await conn.fetch(query.get_tables())
+        actual_tables = [table['table_name'] for table in tables]
+        missing_tables = [
+            table for table in expected_tables if table not in actual_tables
+        ]
+    if missing_tables:
+        for table in missing_tables:
+            logger.critical(
+                f'Table is still missing: {missing_table}'
+            )
+        return False
+    logger.info('Database has all tables')
+    return True
 
 
 async def execute(conn: Connection, query: str, *args):

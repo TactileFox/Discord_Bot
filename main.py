@@ -474,6 +474,17 @@ async def get_astronomy_by_date(
         await ctx.interaction.followup.send(embed=pages[0])
 
 
+async def verify_db_exists() -> bool:
+    if await psql.verify_DB_exists() is True:
+        return True
+    else:
+        logger.critical(
+            'Missing tables preventing the bot from running.'
+            ' Please see psql.log for more information.'
+        )
+        return False
+
+
 # Start Bot
 def main() -> None:
     bot.run(token=TOKEN)
@@ -481,4 +492,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    if asyncio.run(verify_db_exists()) is True:
+        main()
