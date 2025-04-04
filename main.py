@@ -265,7 +265,7 @@ async def send_paginated_embed(ctx: commands.Context, pages: list[Embed],
                 'reaction_add', check=check, timeout=timeout)
             await reaction.remove(user)
 
-            logger.info(
+            logger.debug(
                 f'Reaction Added: {str(reaction.emoji)} by {user.name}')
 
             if reaction.emoji == '⬅️' and current_page > 0:
