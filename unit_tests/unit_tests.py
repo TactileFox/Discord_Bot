@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from requests.exceptions import HTTPError
 from api_requests import get_usa_weather, get_astronomy_picture
 
-# In terminal, run python -m unittest unit_tests.py
+# In terminal, run python -m unittest unit_tests/unit_tests.py
 
 
 class TestAPI(unittest.IsolatedAsyncioTestCase):
