@@ -306,7 +306,7 @@ async def get_weather(
     longitude: float, units: str
 ) -> None:
 
-    await ctx.interaction.response.defer()
+    await ctx.interaction.response.defer(ephemeral=True)
 
     si_units = ('celcius, c, si, standard, metric')
     units = 'si' if units.lower() in si_units else 'us'
@@ -430,7 +430,7 @@ async def get_astronomy_by_date(
             logger.exception(f'Invalid Date: {end_day} {end_month} {end_year}')
             end_date = None
 
-    await ctx.interaction.response.defer()
+    await ctx.interaction.response.defer(ephemeral=True)
 
     async def send_error_message(text: str):
         await ctx.interaction.followup.send(
