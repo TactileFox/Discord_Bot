@@ -1,5 +1,5 @@
 from datetime import datetime
-from enums import ChannelType
+from app.models.enums import ChannelType
 from pydantic import BaseModel
 from typing import Optional
 from app.models.guild import Guild
