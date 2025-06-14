@@ -44,7 +44,7 @@
                 color: white;
             }
             .tab button.active {
-                background-color: #ccc
+                background-color: gray
             }
             .tabcontent {
                 display: none;
@@ -78,8 +78,8 @@
                     <p style="text-align: center; font-size: 18px">Gain a deeper understanding of your most active and influential users. Use data-driven insights to tailor your engagement strategies and recognize your community's power users.</p>
                 </div>
                 <div>
-                    <h5 style="border-bottom: 10px solid darkslategray;"><strong>Astrology</strong></h5>
-                    <p style="text-align: center; font-size: 18px">Embark on an astronomical adventure with the /get_astrology command. Explore distant planets, constellations, and solar systems directly from your Discord server.</p>
+                    <h5 style="border-bottom: 10px solid darkslategray;"><strong>Astronomy</strong></h5>
+                    <p style="text-align: center; font-size: 18px">Embark on an astronomical adventure with the /get_astronomy command. Explore distant planets, constellations, and solar systems directly from your Discord server.</p>
                 </div>
                 <div>
                     <h5 style="border-bottom: 10px solid darkslategray;"><strong>Weather</strong></h5>
@@ -137,7 +137,7 @@
                     tablinks[i].className = tablinks[i].className.replace(" active", ""); // Set current tab's classname to an inactive tab
                 }
                 document.getElementById(tabName).style.display = "block"
-                evt.currentTarget.className += " active" // set clicked tab to an active class
+                event.currentTarget.className += " active" // set clicked tab to an active class
             }
 
             document.querySelector(".tablinks").click() // simulates a click on the first tablinks entry (tab one)
