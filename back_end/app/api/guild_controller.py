@@ -5,7 +5,7 @@ from app.database.database import acquire_connection
 from app.models.guild import Guild
 
 
-router = APIRouter(prefix='/guild')  # may need tags?
+router = APIRouter(prefix='/guilds')  # may need tags?
 
 
 @router.get('/{id}', response_model=Guild)
