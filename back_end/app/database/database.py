@@ -12,13 +12,15 @@ async def connect_to_db(dsn: str):
 
 
 async def disconnect_db():
+    global pool
     if pool:
         await pool.close()
 
 
 @asynccontextmanager
 async def acquire_connection() -> AsyncGenerator[psy.Connection, None]:
+    global pool
     if not pool:
-        return RuntimeError('Connection Pool not initialized')
+        raise RuntimeError('Connection Pool not initialized')
     async with pool.acquire() as conn:
         yield conn
