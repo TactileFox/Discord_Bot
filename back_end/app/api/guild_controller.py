@@ -9,7 +9,7 @@ router = APIRouter(prefix='/guilds')  # may need tags?
 
 
 @router.get('/{id}', response_model=Guild)
-def get_guild_by_id(
+async def get_guild_by_id(
     id: int,
     conn: Connection = Depends(acquire_connection())
 ) -> Guild:
