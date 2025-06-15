@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class Guild(BaseModel):
-    create_date = datetime
+    create_date: datetime
     description: str
     id: int
     name: str
