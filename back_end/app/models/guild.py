@@ -8,4 +8,4 @@ class Guild(BaseModel):
     description: str
     id: int
     name: str
-    update_date = Optional[datetime] = None
+    update_date: Optional[datetime] = None
