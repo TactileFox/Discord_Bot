@@ -8,7 +8,7 @@ pool: Optional[psy.pool.Pool] = None
 async def connect_to_db(dsn: str):
     global pool
     if not pool:
-        pool = psy.create_pool(dsn)
+        pool = await psy.create_pool(dsn)
 
 
 async def disconnect_db():
