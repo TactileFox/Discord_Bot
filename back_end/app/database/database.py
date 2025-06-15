@@ -2,7 +2,7 @@ import asyncpg as psy
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
-pool = Optional[psy.pool.Pool] = None
+pool: Optional[psy.pool.Pool] = None
 
 
 async def connect_to_db(dsn: str):
