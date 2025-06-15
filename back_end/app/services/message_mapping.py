@@ -1,8 +1,8 @@
 from asyncpg import Record
-from app.models.message import Message
-from app.models.user import User
-from app.models.guild import Guild
-from app.models.channel import Channel
+from models.message import Message
+from models.user import User
+from models.guild import Guild
+from models.channel import Channel
 
 
 def map_message_row(

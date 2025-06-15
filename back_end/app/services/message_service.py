@@ -1,8 +1,8 @@
-import app.services.channel_service as channel_service
-import app.services.user_service as user_service
+import services.channel_service as channel_service
+import services.user_service as user_service
 from asyncpg import Connection
-from app.models.message import Message
-from app.services.message_mapping import map_message_row
+from models.message import Message
+from services.message_mapping import map_message_row
 
 
 async def get_by_id(conn: Connection, id: int) -> Message | None:

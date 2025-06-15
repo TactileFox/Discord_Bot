@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
-from app.models.user import User
+from models.user import User
 
 
 class UserMention(BaseModel):

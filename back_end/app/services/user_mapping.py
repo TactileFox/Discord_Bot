@@ -1,5 +1,5 @@
 from asyncpg import Record
-from app.models.user import User
+from models.user import User
 
 
 def map_user_row(record: Record) -> User:

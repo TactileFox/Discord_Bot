@@ -1,8 +1,8 @@
-import app.services.user_service as user_service
+import services.user_service as user_service
 from asyncpg import Connection
 from fastapi import APIRouter, Depends, HTTPException
-from app.database.database import acquire_connection
-from app.models.user import User
+from database.database import acquire_connection
+from models.user import User
 
 router = APIRouter(prefix='/users')
 

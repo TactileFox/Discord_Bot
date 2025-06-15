@@ -1,7 +1,7 @@
-import app.services.guild_service as guild_service
+import services.guild_service as guild_service
 from asyncpg import Connection
-from app.models.channel import Channel
-from app.services.channel_mapping import map_channel_row
+from models.channel import Channel
+from services.channel_mapping import map_channel_row
 
 
 def get_by_id(conn: Connection, id: int) -> Channel | None:

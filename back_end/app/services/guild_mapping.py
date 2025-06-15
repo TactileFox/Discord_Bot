@@ -1,5 +1,5 @@
 from asyncpg import Record
-from app.models.guild import Guild
+from models.guild import Guild
 
 
 def map_guild_row(record: Record) -> Guild:

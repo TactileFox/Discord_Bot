@@ -1,6 +1,6 @@
 from asyncpg import Connection
-from app.models.guild import Guild
-from app.services.guild_mapping import map_guild_row
+from models.guild import Guild
+from services.guild_mapping import map_guild_row
 
 
 async def get_by_id(conn: Connection, id: int) -> Guild | None:

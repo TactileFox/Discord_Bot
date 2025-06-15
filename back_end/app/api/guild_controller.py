@@ -1,8 +1,8 @@
-import app.services.guild_service as guild_service
+import services.guild_service as guild_service
 from asyncpg import Connection
 from fastapi import APIRouter, Depends, HTTPException
-from app.database.database import acquire_connection
-from app.models.guild import Guild
+from database.database import acquire_connection
+from models.guild import Guild
 
 
 router = APIRouter(prefix='/guilds')  # may need tags?

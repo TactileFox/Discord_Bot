@@ -1,8 +1,8 @@
-import app.services.message_service as message_service
+import services.message_service as message_service
 from asyncpg import Connection
 from fastapi import APIRouter, Depends, HTTPException
-from app.database.database import acquire_connection
-from app.models.message import Message
+from database.database import acquire_connection
+from models.message import Message
 
 router = APIRouter(prefix='/messages')
 

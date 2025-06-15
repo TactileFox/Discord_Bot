@@ -1,9 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
-from app.models.channel import Channel
-from app.models.guild import Guild
-from app.models.user import User
+from models.channel import Channel
+from models.guild import Guild
+from models.user import User
 
 
 class Message(BaseModel):

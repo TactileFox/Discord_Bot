@@ -1,6 +1,6 @@
 from asyncpg import Connection
-from app.models.user import User
-from app.services.user_mapping import map_user_row
+from models.user import User
+from services.user_mapping import map_user_row
 
 
 async def get_by_id(conn: Connection, id: int) -> User | None:

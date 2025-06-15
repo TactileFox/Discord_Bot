@@ -1,7 +1,7 @@
 from asyncpg import Record
-from app.models.channel import Channel
-from app.models.enums import ChannelType
-from app.models.guild import Guild
+from models.channel import Channel
+from models.enums import ChannelType
+from models.guild import Guild
 # No idea if the channel type will work as I expect lol
 
 
