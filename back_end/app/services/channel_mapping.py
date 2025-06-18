@@ -8,7 +8,7 @@ from models.guild import Guild
 def map_channel_row(record: Record, guild: Guild) -> Channel:
     channel = Channel(
         category=record['CategoryName'],
-        channel_type=ChannelType(record['ChannelTypeId']).label_from_value(),
+        channel_type=ChannelType.label_from_value(record['ChannelTypeId']),
         create_date=record['CreateDateUTC'],
         guild=guild,
         id=record['Id'],
