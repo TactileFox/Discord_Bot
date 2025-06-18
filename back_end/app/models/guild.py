@@ -5,7 +5,7 @@ from typing import Optional
 
 class Guild(BaseModel):
     create_date: datetime
-    description: str
+    description: Optional[str] = None
     id: int
     name: str
     update_date: Optional[datetime] = None
