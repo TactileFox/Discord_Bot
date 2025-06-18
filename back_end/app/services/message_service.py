@@ -6,7 +6,9 @@ from services.message_mapping import map_message_row
 
 
 async def get_by_id(conn: Connection, id: int) -> Message | None:
-    message_data = await conn.fetchrow('SELECT * FROM ')
+    message_data = await conn.fetchrow(
+        'SELECT * FROM "Message" WHERE "Id" = $1', id
+    )
     if message_data:
         author = await user_service.get_by_id(conn, message_data['UserId'])
         channel = await channel_service.get_by_id(
