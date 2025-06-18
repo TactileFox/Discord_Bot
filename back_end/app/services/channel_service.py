@@ -4,9 +4,11 @@ from models.channel import Channel
 from services.channel_mapping import map_channel_row
 
 
-def get_by_id(conn: Connection, id: int) -> Channel | None:
-    channel_data = conn.fetchrow('SELECT * FROM "Channel" WHERE "Id" = $1', id)
+async def get_by_id(conn: Connection, id: int) -> Channel | None:
+    channel_data = await conn.fetchrow(
+        'SELECT * FROM "Channel" WHERE "Id" = $1', id
+        )
     if channel_data:
-        guild = guild_service.get_by_id(conn, channel_data['GuildId'])
+        guild = await guild_service.get_by_id(conn, channel_data['GuildId'])
         return map_channel_row(channel_data, guild)
     return None

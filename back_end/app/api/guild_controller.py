@@ -11,9 +11,9 @@ router = APIRouter(prefix='/guilds')  # may need tags?
 @router.get('/{id}', response_model=Guild)
 async def get_guild_by_id(
     id: int,
-    conn: Connection = Depends(acquire_connection())
+    conn: Connection = Depends(acquire_connection)
 ) -> Guild:
-    guild = guild_service.get_by_id(conn, id)
+    guild = await guild_service.get_by_id(conn, id)
     if not guild:
         raise HTTPException(status_code=404, detail='Guild not found')
     else:
