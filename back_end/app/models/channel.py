@@ -1,5 +1,4 @@
 from datetime import datetime
-from models.enums import ChannelType
 from pydantic import BaseModel
 from typing import Optional
 from models.guild import Guild
@@ -7,7 +6,7 @@ from models.guild import Guild
 
 class Channel(BaseModel):
     category: str
-    channel_type: ChannelType
+    channel_type: int
     create_date: datetime
     guild: Guild
     id: int
