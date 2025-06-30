@@ -12,5 +12,6 @@ class ChannelType(IntEnum):
     PUBLIC_THREAD: 11
     PRIVATE_THREAD: 12
     STAGE_VOICE: 13
+    GUILD_DIRECTORY: 14
     FORUM: 15
     MEDIA: 16
