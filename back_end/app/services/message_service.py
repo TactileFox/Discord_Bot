@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 import services.channel_service as channel_service
 import services.user_service as user_service
 from asyncpg import Connection
@@ -11,8 +12,14 @@ async def get_by_id(conn: Connection, id: int) -> Message | None:
     )
     if message_data:
         author = await user_service.get_by_id(conn, message_data['UserId'])
+        if not author:
+            raise HTTPException(status_code=404, detail=f"User {id} not found")
         channel = await channel_service.get_by_id(
             conn, message_data['ChannelId']
+            )
+        if not channel:
+            raise HTTPException(
+                status_code=404, detail=f"Channel {id} not found"
             )
         return map_message_row(message_data, author, channel.guild, channel)
     return None
