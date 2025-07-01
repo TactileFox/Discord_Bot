@@ -13,5 +13,5 @@ async def get_user_by_id(
     async with acquire_connection() as conn:
         user = await user_service.get_by_id(conn, id)
         if not user:
-            raise HTTPException(status_code=404, detail='User not found')
+            raise HTTPException(status_code=404, detail=f'User {id} not found')
         return user

@@ -13,5 +13,7 @@ async def get_message_by_id(
     async with acquire_connection() as conn:
         message = await message_service.get_by_id(conn, id)
         if not message:
-            raise HTTPException(status_code=404, detail='Message not found')
+            raise HTTPException(
+                status_code=404, detail=f'Message {id} not found'
+            )
         return message

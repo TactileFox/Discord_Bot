@@ -13,5 +13,7 @@ async def get_channel_by_id(
     async with acquire_connection() as conn:
         channel = await channel_service.get_by_id(conn, id)
         if not channel:
-            raise HTTPException(status_code=404, detail='Channel not found')
+            raise HTTPException(
+                status_code=404, detail=f'Channel {id} not found'
+            )
         return channel

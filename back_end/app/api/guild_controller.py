@@ -14,6 +14,8 @@ async def get_guild_by_id(
     async with acquire_connection() as conn:
         guild = await guild_service.get_by_id(conn, id)
         if not guild:
-            raise HTTPException(status_code=404, detail='Guild not found')
+            raise HTTPException(
+                status_code=404, detail=f'Guild {id} not found'
+            )
         else:
             return guild
