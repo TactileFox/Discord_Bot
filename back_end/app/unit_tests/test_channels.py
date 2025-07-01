@@ -2,11 +2,12 @@ import requests as r
 import unittest
 from fastapi import HTTPException
 from datetime import datetime as dt
+from api.channel_controller import get_channel_by_id
 from unittest.mock import AsyncMock, patch
 from models.channel import Channel
 from models.enums import ChannelType
 from models.guild import Guild
-from services.channel_service import get_by_id
+from services.channel_service import get_by_id as service_get_by_id
 
 
 class TestChannelService(unittest.IsolatedAsyncioTestCase):
@@ -82,25 +83,26 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
             'UpdateDateUTC': None
         }
 
+    # Verify API is running and fails 404
     async def test_connection(self):
         response = r.get(
             'http://127.0.0.1:8000/Channels/1'
         )
         assert response.status_code == 404
 
+    # channel_service.get_by_id() fail due to no channel data found
     async def test_get_by_id_no_channel_data_404(self):
         mock_conn = AsyncMock()
         mock_conn.fetchrow.return_value = None
 
-        with self.assertRaises(HTTPException) as ctx:
-            await get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, 1)
 
-        self.assertEqual(ctx.exception.status_code, 404)
-        self.assertEqual(ctx.exception.detail, 'Channel not found')
+        self.assertEqual(result, None)
         mock_conn.fetchrow.assert_awaited_once_with(
             'SELECT * FROM "Channel" WHERE "Id" = $1', 1
         )
 
+    # channel_service.get_by_id() fail due to no guild data found
     @patch('services.guild_service.get_by_id', new_callable=AsyncMock)
     async def test_get_by_id_no_guild_data_404(self, mock_guild_get_by_id):
         mock_conn = AsyncMock()
@@ -108,7 +110,7 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
         mock_guild_get_by_id.return_value = None
 
         with self.assertRaises(HTTPException) as ctx:
-            await get_by_id(mock_conn, 1)
+            await service_get_by_id(mock_conn, 1)
 
         self.assertEqual(ctx.exception.status_code, 404)
         self.assertEqual(ctx.exception.detail, 'Guild not found')
@@ -117,6 +119,7 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
             mock_conn, 999999999999999999
         )
 
+    # channel_service.get_by_id() success
     @patch('services.guild_service.get_by_id', new_callable=AsyncMock)
     async def test_get_by_id_channel_and_guild_updated_200(
         self, mock_guild_get_by_id
@@ -125,7 +128,7 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
         mock_conn.fetchrow.return_value = self.channel_record_updated
         mock_guild_get_by_id.return_value = self.updated_guild
 
-        result = await get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, 1)
 
         self.assertEqual(result, self.updated_channel)
         self.assertEqual(type(result), Channel)
@@ -133,3 +136,35 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
         mock_guild_get_by_id.assert_awaited_once_with(
             mock_conn, 999999999999999999
         )
+
+    # channels/{id} 404
+    @patch('services.channel_service.get_by_id', new_callable=AsyncMock)
+    @patch('api.channel_controller.acquire_connection')
+    async def test_controller_get_by_id_404(
+        self, mock_acquire_conn, mock_get_by_id
+    ):
+        mock_get_by_id.return_value = None
+        mock_conn = AsyncMock()
+        mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
+
+        with self.assertRaises(HTTPException) as ctx:
+            await get_channel_by_id(1)
+
+        self.assertEqual(ctx.exception.status_code, 404)
+        self.assertEqual(ctx.exception.detail, "Channel not found")
+        mock_get_by_id.assert_awaited_once_with(mock_conn, 1)
+
+    # channels/{id} 200
+    @patch('services.channel_service.get_by_id', new_callable=AsyncMock)
+    @patch('api.channel_controller.acquire_connection')
+    async def test_controller_get_by_id_200(
+        self, mock_acquire_conn, mock_get_by_id
+    ):
+        mock_get_by_id.return_value = self.updated_channel
+        mock_conn = AsyncMock()
+        mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
+
+        result = await get_channel_by_id(1)
+
+        self.assertEqual(result, self.updated_channel)
+        mock_get_by_id.assert_awaited_once()
