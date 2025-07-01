@@ -10,7 +10,7 @@ from models.guild import Guild
 from services.channel_service import get_by_id as service_get_by_id
 
 
-class TestChannelService(unittest.IsolatedAsyncioTestCase):
+class TestChannels(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):  # Runs once at start
@@ -113,7 +113,7 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
             await service_get_by_id(mock_conn, 1)
 
         self.assertEqual(ctx.exception.status_code, 404)
-        self.assertEqual(ctx.exception.detail, 'Guild not found')
+        self.assertEqual(ctx.exception.detail, 'Guild 1 not found')
         mock_conn.fetchrow.assert_awaited_once()
         mock_guild_get_by_id.assert_awaited_once_with(
             mock_conn, 999999999999999999
@@ -151,7 +151,7 @@ class TestChannelService(unittest.IsolatedAsyncioTestCase):
             await get_channel_by_id(1)
 
         self.assertEqual(ctx.exception.status_code, 404)
-        self.assertEqual(ctx.exception.detail, "Channel not found")
+        self.assertEqual(ctx.exception.detail, "Channel 1 not found")
         mock_get_by_id.assert_awaited_once_with(mock_conn, 1)
 
     # channels/{id} 200
