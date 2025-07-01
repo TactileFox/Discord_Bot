@@ -14,4 +14,4 @@ async def get_by_id(conn: Connection, id: int) -> Channel | None:
         if not guild:
             raise HTTPException(status_code=404, detail="Guild not found")
         return map_channel_row(channel_data, guild)
-    raise HTTPException(status_code=404, detail='Channel not found')
+    return None
