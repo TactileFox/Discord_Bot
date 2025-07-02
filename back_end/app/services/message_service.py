@@ -39,7 +39,7 @@ async def get_by_id(conn: Connection, id: int) -> Message | None:
             conn, message_data['Id']
         )
         return map_message_row(
-            message_data, author, channel.guild,
+            message_data, author,
             channel, attachments, user_mentions
         )
     return None
