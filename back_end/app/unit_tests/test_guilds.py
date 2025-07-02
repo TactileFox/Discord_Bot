@@ -49,7 +49,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         assert response.status_code == 404
 
     # guild_service.get_by_id() fail due to no guild data found
-    async def test_get_by_id_no_guild_data_404(self):
+    async def test_get_by_id_no_guild_data_fail(self):
         mock_conn = AsyncMock()
         mock_conn.fetchrow.return_value = None
 
@@ -62,7 +62,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
 
     # guild_service.get_by_id() success
     @patch('services.guild_service.map_guild_row', new_callable=MagicMock)
-    async def test_get_by_id_guild_and_guild_updated_200(
+    async def test_get_by_id_guild_and_guild_updated_success(
         self, mock_guild_mapper
     ):
         mock_conn = AsyncMock()
