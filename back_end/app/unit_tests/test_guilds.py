@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from api.guild_controller import get_guild_by_id
 from unittest.mock import AsyncMock, patch, MagicMock
 from models.guild import Guild
-from services.guild_service import get_by_id as guild_get_by_id
+from services.guild_service import get_by_id as service_get_by_id
 
 
 class TestGuilds(unittest.IsolatedAsyncioTestCase):
@@ -53,7 +53,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn = AsyncMock()
         mock_conn.fetchrow.return_value = None
 
-        result = await guild_get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, 1)
 
         self.assertEqual(result, None)
         mock_conn.fetchrow.assert_awaited_once_with(
@@ -69,7 +69,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn.fetchrow.return_value = self.guild_record_updated
         mock_guild_mapper.return_value = self.updated_guild
 
-        result = await guild_get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, 1)
 
         self.assertEqual(result, self.updated_guild)
         self.assertEqual(type(result), Guild)
