@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-import services.attachment_service as attachmemnt_service
+import services.attachment_service as attachment_service
 import services.channel_service as channel_service
 import services.user_service as user_service
 import services.user_mention_service as user_mention_service
@@ -35,7 +35,7 @@ async def get_by_id(conn: Connection, id: int) -> Message | None:
         user_mentions = await user_mention_service.get_by_message_id(
             conn, message_data['Id']
         )
-        attachments = await attachmemnt_service.get_by_message_id(
+        attachments = await attachment_service.get_by_message_id(
             conn, message_data['Id']
         )
         return map_message_row(
