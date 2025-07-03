@@ -12,29 +12,31 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):  # Runs once at start
+        cls.guild_id = 912345678999999999
+
         cls.unupdated_guild = Guild(
             create_date=dt(2025, 1, 1, 1, 1, 1),
             description='Mock guild description',
-            id=999999999999999999,
+            id=cls.guild_id,
             name='Mock guild name',
             update_date=None
         )
         cls.updated_guild = Guild(
             create_date=dt(2025, 1, 1, 1, 1, 1),
             description='Mock guild description',
-            id=999999999999999999,
+            id=cls.guild_id,
             name='Mock guild name',
             update_date=dt(2025, 1, 1, 1, 1, 2)
         )
         cls.guild_record_updated = {
-            'Id': 999999999999999999,
+            'Id': cls.guild_id,
             'Name': 'Mock guild name',
             'Description': 'Mock guild description',
             'CreateDateUTC': dt(2025, 1, 1, 1, 1, 1),
             'UpdateDateUTC': dt(2025, 1, 1, 1, 1, 2)
         }
         cls.guild_record_unupdated = {
-            'Id': 999999999999999999,
+            'Id': cls.guild_id,
             'Name': 'Mock guild name',
             'Description': 'Mock guild description',
             'CreateDateUTC': dt(2025, 1, 1, 1, 1, 1),
