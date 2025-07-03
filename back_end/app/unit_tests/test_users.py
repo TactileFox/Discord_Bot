@@ -12,15 +12,16 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):  # Runs once at start
+        cls.user_id = 999999999999999999
         cls.updated_user = User(
             create_date=dt(2025, 1, 1, 1, 1, 1),
-            id=999999999999999999,
+            id=cls.user_id,
             update_date=dt(2025, 1, 1, 1, 1, 2),
             username='Mock user username'
         )
         cls.user_record_updated = {
             'CreateDateUTC': dt(2025, 1, 1, 1, 1, 1),
-            'Id': 999999999999999999,
+            'Id': cls.user_id,
             'Username': 'Mock user username',
             'UpdateDateUTC': dt(2025, 1, 1, 1, 1, 2)
         }
@@ -37,11 +38,11 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn = AsyncMock()
         mock_conn.fetchrow.return_value = None
 
-        result = await service_get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, self.user_id)
 
         self.assertEqual(result, None)
         mock_conn.fetchrow.assert_awaited_once_with(
-            'SELECT * FROM "User" WHERE "Id" = $1', 1
+            'SELECT * FROM "User" WHERE "Id" = $1', self.user_id
         )
 
     # user_service.get_by_id() success
@@ -49,7 +50,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn = AsyncMock()
         mock_conn.fetchrow.return_value = self.user_record_updated
 
-        result = await service_get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, self.user_id)
 
         self.assertEqual(result, self.updated_user)
         mock_conn.fetchrow.assert_awaited_once()
@@ -65,11 +66,14 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
 
         with self.assertRaises(HTTPException) as ctx:
-            await get_user_by_id(1)
+            await get_user_by_id(self.user_id)
 
         self.assertEqual(ctx.exception.status_code, 404)
-        self.assertEqual(ctx.exception.detail, "User 1 not found")
-        mock_get_by_id.assert_awaited_once_with(mock_conn, 1)
+        self.assertEqual(
+            ctx.exception.detail,
+            f"User {self.user_id} not found"
+        )
+        mock_get_by_id.assert_awaited_once_with(mock_conn, self.user_id)
 
     # users/{id} 200
     @patch('services.user_service.get_by_id', new_callable=AsyncMock)
@@ -81,7 +85,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn = AsyncMock()
         mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
 
-        result = await get_user_by_id(1)
+        result = await get_user_by_id(self.user_id)
 
         self.assertEqual(result, self.updated_user)
         mock_get_by_id.assert_awaited_once()
