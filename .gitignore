@@ -1,3 +1,5 @@
 .env
 __init__.py
 __pycache__/
+*.log
+.hintrc
