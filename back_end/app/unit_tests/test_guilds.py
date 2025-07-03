@@ -71,7 +71,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn.fetchrow.return_value = self.guild_record_updated
         mock_guild_mapper.return_value = self.updated_guild
 
-        result = await service_get_by_id(mock_conn, 1)
+        result = await service_get_by_id(mock_conn, self.guild_id)
 
         self.assertEqual(result, self.updated_guild)
         self.assertEqual(type(result), Guild)
@@ -89,11 +89,14 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
 
         with self.assertRaises(HTTPException) as ctx:
-            await get_guild_by_id(1)
+            await get_guild_by_id(self.guild_id)
 
         self.assertEqual(ctx.exception.status_code, 404)
-        self.assertEqual(ctx.exception.detail, "Guild 1 not found")
-        mock_get_by_id.assert_awaited_once_with(mock_conn, 1)
+        self.assertEqual(
+            ctx.exception.detail,
+            f"Guild {self.guild_id} not found"
+        )
+        mock_get_by_id.assert_awaited_once_with(mock_conn, self.guild_id)
 
     # guilds/{id} 200
     @patch('services.guild_service.get_by_id', new_callable=AsyncMock)
@@ -105,7 +108,7 @@ class TestGuilds(unittest.IsolatedAsyncioTestCase):
         mock_conn = AsyncMock()
         mock_acquire_conn.return_value.__aenter__.return_value = mock_conn
 
-        result = await get_guild_by_id(1)
+        result = await get_guild_by_id(self.guild_id)
 
         self.assertEqual(result, self.updated_guild)
         mock_get_by_id.assert_awaited_once()
